@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { getTemplateBySlug } from "../../lib/getTemplateBySlug";
 import { SectionRegistry } from "../../lib/sectionRegistry";
 import Sidebar from "../../components/builder/Sidebar";
@@ -31,7 +31,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export default function BuilderPage() {
+function BuilderContent() {
   const params = useSearchParams();
   const templateSlug = params.get("template");
   const [mounted, setMounted] = useState(false);
@@ -783,6 +783,20 @@ export default function BuilderPage() {
         </DragOverlay>
       </div>
     </DndContext>
+  );
+}
+
+export default function BuilderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen w-full flex items-center justify-center p-8">
+          <div className="text-gray-500">Loading builder...</div>
+        </div>
+      }
+    >
+      <BuilderContent />
+    </Suspense>
   );
 }
 
