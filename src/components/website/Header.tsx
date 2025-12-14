@@ -54,8 +54,8 @@ const Header: React.FC = () => {
       <header
         className={`fixed top-0 z-50 w-full transition-all duration-300 ${
           scrolled
-            ? "bg-black/80 backdrop-blur-xl border-b border-white/10 shadow-2xl"
-            : "bg-transparent"
+            ? "bg-black/50 backdrop-blur-xl shadow-2xl"
+            : "bg-black/20 backdrop-blur-xl shadow-2xl py-2"
         }`}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,7 +77,7 @@ const Header: React.FC = () => {
                 SnapSite
               </span>
               <span className="text-base sm:text-xl font-bold text-white sm:hidden">
-                SWC
+                SnapSite
               </span>
             </a>
 
@@ -131,13 +131,13 @@ const Header: React.FC = () => {
               ) : (
                 <a
                   href="/signup"
-                  className="group relative opacity-0 px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold text-black bg-white rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-white/20 inline-flex items-center gap-2"
+                  className="group relative px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold text-black rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:bg-gradient-to-r from-purple-800 to-pink-800 inline-flex items-center gap-2"
                 >
-                  <span className="relative z-10 flex items-center gap-2">
-                    <Sparkles size={16} className="hidden sm:block" />
+                  <span className="relative z-10 hidden md:flex items-center gap-2">
+                    <Sparkles size={16} className=" sm:block" />
                     Get Started
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 md:opacity-100 group-hover:opacity-20 transition-opacity duration-300" />
                 </a>
               )}
 
