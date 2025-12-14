@@ -1,0 +1,97 @@
+{
+  "name": "SaaS Product Template",
+  "sections": [
+    {
+      "type": "heroGradient",
+      "props": {
+        "title": "The Future of Productivity",
+        "subtitle": "Streamline your workflow with our AI-powered platform built for modern teams.",
+        "buttonText": "Start Free Trial"
+      }
+    },
+    {
+      "type": "featuresIcons",
+      "props": {
+        "items": [
+          { "title": "AI Powered", "desc": "Smart automation for your daily tasks" },
+          { "title": "Real-time Sync", "desc": "Collaborate with your team instantly" },
+          { "title": "Bank Security", "desc": "Your data is always safe with us" },
+          { "title": "Global Edge", "desc": "Fast access from anywhere" }
+        ]
+      }
+    },
+    {
+      "type": "featuresGrid",
+      "props": {
+        "items": [
+          { "title": "Seamless Integration", "desc": "Works with all your favorite tools out of the box." },
+          { "title": "Advanced Analytics", "desc": "Gain insights into your team's performance." },
+          { "title": "Custom Workflows", "desc": "Tailor the platform to match your process." }
+        ]
+      }
+    },
+    {
+      "type": "pricingThreeColumn",
+      "props": {
+        "plans": [
+          {
+            "name": "Starter",
+            "price": "$0",
+            "period": "/mo",
+            "features": ["1 User", "Basic Features", "Community Support"],
+            "popular": false
+          },
+          {
+            "name": "Pro",
+            "price": "$49",
+            "period": "/mo",
+            "features": ["Unlimited Users", "Advanced AI", "Priority Support", "Analytics"],
+            "popular": true
+          },
+          {
+            "name": "Enterprise",
+            "price": "Custom",
+            "period": "",
+            "features": ["Dedicated Manager", "SLA", "Custom Integrations", "Audit Logs"],
+            "popular": false
+          }
+        ]
+      }
+    },
+    {
+      "type": "testimonialCards",
+      "props": {
+        "testimonials": [
+          {
+            "name": "David Kim",
+            "role": "CTO, TechStart",
+            "image": "https://i.pravatar.cc/150?img=11",
+            "rating": 5,
+            "text": "The AI features alone have saved us hundreds of hours. It's an indispensable tool for our engineering team."
+          },
+          {
+            "name": "Sarah Jenkins",
+            "role": "Product Lead, Innovate",
+            "image": "https://i.pravatar.cc/150?img=5",
+            "rating": 5,
+            "text": "Finally, a tool that actually helps us move faster without the clutter. The UI is beautiful and intuitive."
+          }
+        ]
+      }
+    },
+    {
+      "type": "ctaBoxed",
+      "props": {
+        "title": "Start Building Today",
+        "subtitle": "Everything you need to create stunning websites in one powerful platform.",
+        "buttonText": "Try It Free"
+      }
+    },
+    {
+      "type": "footerSimple",
+      "props": {
+        "companyName": "SaaS Platform"
+      }
+    }
+  ]
+}

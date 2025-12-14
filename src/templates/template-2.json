@@ -1,0 +1,109 @@
+{
+  "name": "Creative Portfolio Template",
+  "sections": [
+    {
+      "type": "heroCentered",
+      "props": {
+        "title": "Design That Inspires",
+        "subtitle": "Showcasing creative excellence through stunning visual storytelling and innovative design solutions.",
+        "buttonText": "View Portfolio",
+        "buttonText2": "Contact Me"
+      }
+    },
+    {
+      "type": "portfolioGrid",
+      "props": {
+        "projects": [
+          {
+            "title": "E-Commerce Platform",
+            "category": "Web Development",
+            "image": "https://images.unsplash.com/photo-1557821552-17105176677c?w=800&h=600&fit=crop",
+            "description": "Modern online shopping experience"
+          },
+          {
+            "title": "Brand Identity",
+            "category": "Design",
+            "image": "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop",
+            "description": "Complete branding package for startup"
+          },
+          {
+            "title": "Mobile App",
+            "category": "App Development",
+            "image": "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop",
+            "description": "iOS and Android fitness tracker"
+          },
+          {
+            "title": "SaaS Dashboard",
+            "category": "UI/UX Design",
+            "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
+            "description": "Analytics platform interface"
+          },
+          {
+            "title": "Marketing Website",
+            "category": "Web Development",
+            "image": "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&h=600&fit=crop",
+            "description": "High-converting landing page"
+          },
+          {
+            "title": "Logo Design",
+            "category": "Branding",
+            "image": "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&h=600&fit=crop",
+            "description": "Minimalist corporate identity"
+          }
+        ]
+      }
+    },
+    {
+      "type": "aboutImageLeft",
+      "props": {
+        "title": "Creative Director & Designer",
+        "description": "With over 10 years of experience in digital design, I help brands create memorable experiences that resonate with their audience.",
+        "image": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop"
+      }
+    },
+    {
+      "type": "teamGrid",
+      "props": {
+        "members": [
+          {
+            "name": "Alex Thompson",
+            "role": "CEO & Founder",
+            "image": "https://i.pravatar.cc/300?img=11",
+            "bio": "Visionary leader with 15+ years in tech"
+          },
+          {
+            "name": "Jamie Lee",
+            "role": "Head of Design",
+            "image": "https://i.pravatar.cc/300?img=5",
+            "bio": "Award-winning designer passionate about UX"
+          },
+          {
+            "name": "Morgan Davis",
+            "role": "Lead Developer",
+            "image": "https://i.pravatar.cc/300?img=13",
+            "bio": "Full-stack expert building scalable solutions"
+          },
+          {
+            "name": "Casey Martinez",
+            "role": "Product Manager",
+            "image": "https://i.pravatar.cc/300?img=9",
+            "bio": "Strategic thinker driving product innovation"
+          }
+        ]
+      }
+    },
+    {
+      "type": "contactForm",
+      "props": {
+        "title": "Let's Work Together",
+        "subtitle": "Have a project in mind? Let's discuss how we can bring your vision to life."
+      }
+    },
+    {
+      "type": "footerSimple",
+      "props": {
+        "companyName": "Creative Studio"
+      }
+    }
+  ]
+}

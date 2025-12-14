@@ -1,0 +1,45 @@
+{
+  "name": "SaaS Product Template",
+  "sections": [
+    {
+      "type": "heroGradient",
+      "props": {
+        "title": "The Future of Productivity",
+        "subtitle": "Streamline your workflow with our AI-powered platform built for modern teams.",
+        "buttonText": "Start Free Trial"
+      }
+    },
+    {
+      "type": "featuresGrid",
+      "props": {
+        "items": ["AI-Powered Automation", "Real-Time Collaboration", "Advanced Security", "Seamless Integrations"]
+      }
+    },
+    {
+      "type": "pricingThreeColumn",
+      "props": {
+        "plans": []
+      }
+    },
+    {
+      "type": "testimonialCards",
+      "props": {
+        "testimonials": []
+      }
+    },
+    {
+      "type": "ctaBoxed",
+      "props": {
+        "title": "Start Building Today",
+        "subtitle": "Everything you need to create stunning websites in one powerful platform.",
+        "buttonText": "Try It Free"
+      }
+    },
+    {
+      "type": "footerSimple",
+      "props": {
+        "companyName": "SaaS Platform"
+      }
+    }
+  ]
+}

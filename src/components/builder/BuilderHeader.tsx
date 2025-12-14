@@ -1,0 +1,115 @@
+"use client";
+
+import { BiDesktop, BiMobile, BiTable, BiSave, BiShow, BiArrowBack } from "react-icons/bi";
+import Link from "next/link";
+
+export default function BuilderHeader({ 
+  templateName, 
+  viewMode, 
+  setViewMode,
+  onSave,
+  onPreview
+}: {
+  templateName: string;
+  viewMode: "desktop" | "tablet" | "mobile";
+  setViewMode: (mode: "desktop" | "tablet" | "mobile") => void;
+  onSave?: () => void;
+  onPreview?: () => void;
+}) {
+  return (
+    <div className="h-16 fixed top-0 left-0 right-0 z-[10000]
+      flex items-center justify-between px-4
+      bg-[#0b0f19] border-b border-white/10
+      shadow-lg shadow-black/40"
+    >
+
+      {/* Left: Back & Title */}
+      <div className="flex items-center space-x-4 w-64">
+        <Link
+          href="/templates"
+          className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
+        >
+          <BiArrowBack className="w-5 h-5" />
+        </Link>
+
+        <div>
+          <h1 className="font-semibold text-sm text-white">
+            {templateName || "Untitled Site"}
+          </h1>
+          <span className="text-xs text-gray-400">
+            Draft • Autosaved
+          </span>
+        </div>
+      </div>
+
+      {/* Center: Device Toggles */}
+      <div className="flex items-center bg-white/5 p-1 rounded-lg border border-white/10">
+        <button
+          onClick={() => setViewMode("desktop")}
+          className={`p-2 rounded-md transition-all
+            ${
+              viewMode === "desktop"
+                ? "bg-white/10 text-blue-400 shadow-inner"
+                : "text-gray-400 hover:text-white"
+            }`}
+          title="Desktop View"
+        >
+          <BiDesktop className="w-5 h-5" />
+        </button>
+
+        {/* Tablet (optional)
+        <button
+          onClick={() => setViewMode("tablet")}
+          className={`p-2 rounded-md transition-all
+            ${
+              viewMode === "tablet"
+                ? "bg-white/10 text-blue-400 shadow-inner"
+                : "text-gray-400 hover:text-white"
+            }`}
+          title="Tablet View"
+        >
+          <BiTable className="w-5 h-5" />
+        </button>
+        */}
+
+        <button
+          onClick={() => setViewMode("mobile")}
+          className={`p-2 rounded-md transition-all
+            ${
+              viewMode === "mobile"
+                ? "bg-white/10 text-blue-400 shadow-inner"
+                : "text-gray-400 hover:text-white"
+            }`}
+          title="Mobile View"
+        >
+          <BiMobile className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Right: Actions */}
+      <div className="flex items-center space-x-3 w-64 justify-end">
+        <button
+          onClick={onPreview}
+          className="flex items-center space-x-2 px-3 py-2
+            text-sm font-medium text-gray-400
+            hover:text-white hover:bg-white/5
+            rounded-md transition"
+        >
+          <BiShow className="w-4 h-4" />
+          <span>Preview</span>
+        </button>
+
+        <button
+          onClick={onSave}
+          className="flex items-center space-x-2 px-4 py-2
+            bg-blue-600 text-white text-sm font-medium
+            rounded-lg hover:bg-blue-500
+            shadow-md shadow-blue-600/30 transition"
+        >
+          <BiSave className="w-4 h-4" />
+          <span>Save</span>
+        </button>
+      </div>
+    </div>
+  );
+}

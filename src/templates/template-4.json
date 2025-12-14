@@ -1,0 +1,113 @@
+{
+  "name": "Business Pro Template",
+  "sections": [
+    {
+      "type": "heroSplit",
+      "props": {
+        "title": "Transform Your Business Today",
+        "subtitle": "Enterprise-grade solutions designed to scale with your growing business needs.",
+        "buttonText": "Schedule Demo",
+        "image": "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1200&h=800&fit=crop"
+      }
+    },
+    {
+      "type": "featuresIcons",
+      "props": {
+        "items": [
+          { "title": "Scalable Infrastructure", "desc": "Built to grow with your demands" },
+          { "title": "24/7 Support", "desc": "Always here when you need us" },
+          { "title": "Advanced Analytics", "desc": "Data-driven decision making" },
+          { "title": "Enterprise Security", "desc": "Bank-grade data protection" }
+        ]
+      }
+    },
+    {
+      "type": "aboutSimple",
+      "props": {
+        "title": "Why Choose Us?",
+        "description": "We combine industry expertise with cutting-edge technology to deliver results that matter. Our team is dedicated to your success.",
+        "image": "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop"
+      }
+    },
+    {
+      "type": "testimonialCards",
+      "props": {
+        "testimonials": [
+          {
+            "name": "Sarah Johnson",
+            "role": "CEO, TechCorp",
+            "image": "https://i.pravatar.cc/150?img=1",
+            "rating": 5,
+            "text": "This platform has completely transformed how we build websites. Absolutely incredible!"
+          },
+          {
+            "name": "Michael Chen",
+            "role": "Designer, CreativeStudio",
+            "image": "https://i.pravatar.cc/150?img=2",
+            "rating": 5,
+            "text": "The easiest and most powerful website builder I've ever used. Highly recommended!"
+          },
+          {
+            "name": "Emily Rodriguez",
+            "role": "Founder, StartupHub",
+            "image": "https://i.pravatar.cc/150?img=3",
+            "rating": 5,
+            "text": "Within minutes I had a beautiful, professional website up and running. Amazing!"
+          }
+        ]
+      }
+    },
+    {
+      "type": "pricingThreeColumn",
+      "props": {
+        "plans": [
+          {
+            "name": "Starter",
+            "price": "$9",
+            "period": "/month",
+            "features": ["5 Projects", "Basic Support", "1GB Storage", "Email Integration"],
+            "popular": false
+          },
+          {
+            "name": "Professional",
+            "price": "$29",
+            "period": "/month",
+            "features": ["Unlimited Projects", "Priority Support", "10GB Storage", "Advanced Analytics", "Custom Domain"],
+            "popular": true
+          },
+          {
+            "name": "Enterprise",
+            "price": "$99",
+            "period": "/month",
+            "features": ["Everything in Pro", "Dedicated Support", "Unlimited Storage", "White Label", "API Access", "SLA"],
+            "popular": false
+          }
+        ]
+      }
+    },
+    {
+      "type": "teamGrid",
+      "props": {
+        "members": [
+            { "name": "James Wilson", "role": "Senior Consultant", "image": "https://i.pravatar.cc/150?img=12" },
+            { "name": "Linda Chen", "role": "Strategy Lead", "image": "https://i.pravatar.cc/150?img=20" },
+            { "name": "Robert Taylor", "role": "Technical Director", "image": "https://i.pravatar.cc/150?img=13" }
+        ]
+      }
+    },
+    {
+      "type": "ctaSimple",
+      "props": {
+        "title": "Ready to Scale Your Business?",
+        "subtitle": "Join industry leaders who trust our platform for their critical operations.",
+        "buttonText": "Get Started"
+      }
+    },
+    {
+      "type": "footerSimple",
+      "props": {
+        "companyName": "BusinessPro"
+      }
+    }
+  ]
+}

@@ -1,0 +1,307 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getTemplateBySlug } from "../../lib/getTemplateBySlug";
+import { SectionRegistry } from "../../lib/sectionRegistry";
+import Sidebar from "../../components/builder/Sidebar";
+import BuilderHeader from "../../components/builder/BuilderHeader";
+import { ImageIcon, Upload, X, Type } from "lucide-react";
+
+// DnD Kit Imports
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+export default function BuilderPage() {
+  const params = useSearchParams();
+  const templateSlug = params.get("template");
+
+  const [mounted, setMounted] = useState(false);
+
+  /* ---------------- STATE (EXISTING) ---------------- */
+  const [layout, setLayout] = useState<any[]>([]);
+  const [activeDragItem, setActiveDragItem] = useState<any>(null);
+  const [viewMode, setViewMode] =
+    useState<"desktop" | "tablet" | "mobile">("desktop");
+
+  const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(
+    null
+  );
+  const [selectedField, setSelectedField] = useState<string | null>(null);
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(
+    null
+  );
+  const [selectedCardType, setSelectedCardType] = useState<string | null>(null);
+
+  /* ---------------- STATE (NEW – RESPONSIVE ONLY) ---------------- */
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+
+  /* ---------------- LOAD TEMPLATE ---------------- */
+  useEffect(() => {
+    if (!templateSlug) return;
+    const template = getTemplateBySlug(templateSlug);
+
+    if (template?.sections) {
+      setLayout(
+        template.sections.map((sec, i) => ({
+          ...sec,
+          id: sec.id ?? `block-${i}-${Date.now()}`,
+        }))
+      );
+    }
+  }, [templateSlug]);
+
+  /* ---------------- DND ---------------- */
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    })
+  );
+
+  const handleDragStart = (event: any) => {
+    if (event.active.data.current?.isSidebar) {
+      setActiveDragItem({ ...event.active.data.current, id: event.active.id });
+    } else {
+      setActiveDragItem(layout.find((i) => i.id === event.active.id));
+    }
+  };
+
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+    setActiveDragItem(null);
+    if (!over) return;
+
+    if (active.data.current?.isSidebar) {
+      const newSection = {
+        id: `block-${Date.now()}`,
+        type: active.data.current.type,
+        props: active.data.current.props,
+      };
+
+      setLayout((prev) => {
+        const overIndex = prev.findIndex((i) => i.id === over.id);
+        if (overIndex !== -1) {
+          const copy = [...prev];
+          copy[overIndex] = newSection;
+          return copy;
+        }
+        return [...prev, newSection];
+      });
+      return;
+    }
+
+    if (active.id !== over.id) {
+      const oldIndex = layout.findIndex((i) => i.id === active.id);
+      const newIndex = layout.findIndex((i) => i.id === over.id);
+      setLayout((items) => arrayMove(items, oldIndex, newIndex));
+    }
+  };
+
+  const dropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: { active: { opacity: "0.4" } },
+    }),
+  };
+
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="w-full flex flex-col overflow-hidden">
+        {/* HEADER */}
+        <BuilderHeader
+          templateName={templateSlug || "Site"}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+        />
+
+        {/* BODY */}
+        <div className="flex flex-1 pt-16 overflow-hidden relative">
+          {/* SIDEBAR */}
+          <div
+            className={`
+              fixed lg:static inset-y-0 left-0 z-[9998] w-80
+              transform transition-transform duration-300
+              ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+              lg:translate-x-0
+            `}
+          >
+            <Sidebar />
+          </div>
+
+          {isSidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-[9997] lg:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+
+          {/* CANVAS */}
+          <div className="flex-1 bg-gradient-to-br from-gray-950 via-gray-900 to-black overflow-y-auto scroll-minimal p-4 sm:p-6 lg:p-8 flex justify-center">
+            <div
+              className={`
+                bg-white rounded-xl shadow-xl overflow-hidden transition-all
+                ${viewMode === "desktop" ? "w-full max-w-[1200px]" : ""}
+                ${viewMode === "tablet" ? "w-[768px]" : ""}
+                ${viewMode === "mobile" ? "w-[375px]" : ""}
+                min-h-[700px]
+              `}
+            >
+              <SortableContext
+                items={layout.map((b) => b.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="pb-20">
+                  {layout.map((block, index) => (
+                    <SortableSection
+                      key={block.id}
+                      block={block}
+                      blockIndex={index}
+                      isSelected={selectedBlockIndex === index}
+                      setSelectedBlockIndex={setSelectedBlockIndex}
+                      onEdit={(f, ci, ct) => {
+                        setSelectedBlockIndex(index);
+                        setSelectedField(f);
+                        setSelectedCardIndex(ci);
+                        setSelectedCardType(ct);
+                        setIsEditorOpen(true);
+                      }}
+                      onDelete={() =>
+                        setLayout((prev) =>
+                          prev.filter((i) => i.id !== block.id)
+                        )
+                      }
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </div>
+          </div>
+
+          {/* EDITOR PANEL */}
+          {selectedBlockIndex !== null && selectedField && (
+            <div
+              className={`
+                fixed lg:static z-[9999] bg-gray-900/95 backdrop-blur-xl
+                transition-transform duration-300
+                w-full lg:w-80 bottom-0 h-[85vh]
+                ${isEditorOpen ? "translate-y-0" : "translate-y-full"}
+                lg:translate-y-0
+              `}
+            >
+              {/* HEADER */}
+              <div className="p-4 border-b border-white/10 flex justify-between">
+                <h3 className="text-white text-sm font-bold">Edit Content</h3>
+                <button
+                  onClick={() => {
+                    setSelectedField(null);
+                    setSelectedBlockIndex(null);
+                    setIsEditorOpen(false);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X />
+                </button>
+              </div>
+
+              {/* CONTENT */}
+              <div className="p-4 overflow-y-auto scroll-minimal text-white">
+                <textarea
+                  className="w-full bg-white/5 border border-white/10 rounded-lg p-3 min-h-[200px]"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* MOBILE ACTION BAR */}
+        <div className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] flex gap-3">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="px-4 py-2 bg-gray-900 text-white rounded-full"
+          >
+            Sections
+          </button>
+          <button
+            onClick={() => setIsEditorOpen(true)}
+            className="px-4 py-2 bg-purple-600 text-white rounded-full"
+          >
+            Edit
+          </button>
+        </div>
+
+        {/* DRAG OVERLAY */}
+        <DragOverlay dropAnimation={dropAnimation}>
+          {activeDragItem && (
+            <div className="bg-white p-4 rounded-xl shadow-xl w-72">
+              {activeDragItem.name || "Moving"}
+            </div>
+          )}
+        </DragOverlay>
+      </div>
+    </DndContext>
+  );
+}
+
+/* ---------------- SORTABLE SECTION ---------------- */
+function SortableSection({
+  block,
+  blockIndex,
+  isSelected,
+  setSelectedBlockIndex,
+  onEdit,
+  onDelete,
+}: any) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: block.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const Component = SectionRegistry[block.type];
+  if (!Component) return null;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      onClick={() => setSelectedBlockIndex(blockIndex)}
+      className={`relative ${
+        isSelected ? "ring-2 ring-blue-500" : ""
+      }`}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white rounded-full px-4 py-1 shadow cursor-grab"
+      >
+        Drag
+      </div>
+
+      <Component {...block.props} onEdit={onEdit} />
+    </div>
+  );
+}
