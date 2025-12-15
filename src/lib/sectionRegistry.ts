@@ -65,24 +65,52 @@ export const SectionRegistry = {
       html: (props) => `
 <section class="relative py-32 px-6 bg-gradient-to-b from-gray-50 to-white text-center overflow-hidden min-h-screen flex flex-col justify-center items-center w-full">
   <!-- Grid Background -->
-  <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 30px 30px;"></div>
+  <div class="absolute inset-0 opacity-5 grid-pattern"></div>
+  
+  <!-- Subtle Gradient Accent -->
+  <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-gradient-to-br from-indigo-200/30 to-purple-200/30 blur-3xl rounded-full"></div>
   
   <!-- Content -->
   <div class="relative z-10 max-w-3xl mx-auto">
-    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4">
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4 animate-fadeInUp">
       ${props.title || "Welcome to Our Website"}
     </h1>
 
-    <div class="w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 mx-auto mb-6 rounded-full"></div>
+    <div class="w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 mx-auto mb-6 rounded-full animate-scaleIn"></div>
 
-    <p class="mt-6 text-gray-600 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+    <p class="mt-6 text-gray-600 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto animate-fadeInUp" style="animation-delay: 0.1s;">
       ${props.subtitle || "Build and customize your landing page fast."}
     </p>
 
-    <div class="mt-10">
-      <button class="px-8 py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg text-lg font-semibold shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
-        ${props.buttonText || "Get Started"}
+    <div class="mt-10 animate-fadeInUp" style="animation-delay: 0.2s;">
+      <button class="group relative px-8 py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-lg text-lg font-semibold shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden">
+        <span class="relative z-10">${props.buttonText || "Get Started"}</span>
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent shimmer"></div>
+        </div>
       </button>
+    </div>
+
+    <!-- Trust Indicators -->
+    <div class="mt-16 flex flex-wrap justify-center items-center gap-8 text-gray-500 text-sm animate-fadeInUp" style="animation-delay: 0.3s;">
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+          <span class="text-white text-xs">✓</span>
+        </div>
+        <span>No credit card required</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+          <span class="text-white text-xs">✓</span>
+        </div>
+        <span>Free forever plan</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+          <span class="text-white text-xs">✓</span>
+        </div>
+        <span>Cancel anytime</span>
+      </div>
     </div>
   </div>
 </section>
@@ -114,21 +142,19 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="relative w-full py-32 overflow-hidden min-h-screen flex flex-col justify-center items-center">
-  
+<section class="relative w-full py-32 overflow-hidden">
   <!-- Animated Gradient Background -->
   <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 animate-gradient-slow"></div>
   
   <!-- Floating Decorative Blobs -->
-  <div class="blob1" style="filter: blur(100px);"></div>
-  <div class="blob2" style="filter: blur(100px);"></div>
+  <div class="blob1"></div>
+  <div class="blob2"></div>
   
   <!-- Grid Pattern Overlay -->
   <div class="absolute inset-0 opacity-10 grid-pattern"></div>
 
   <!-- Content -->
   <div class="max-w-6xl mx-auto text-center px-6 relative z-10">
-
     <!-- Badge -->
     <div class="mb-6 inline-block animate-fadeInUp">
       <span class="px-4 py-2 rounded-full glass text-white text-sm font-semibold shadow-lg">
@@ -171,7 +197,6 @@ export const SectionRegistry = {
         ${props.block3Image ? `<img src="${props.block3Image}" alt="Block 3" class="w-full h-full object-cover" />` : (props.block3Icon ? `<span class="text-2xl">${props.block3Icon}</span>` : '')}
       </div>
     </div>
-
   </div>
 </section>
       `,
@@ -202,23 +227,82 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-20 px-6 max-w-7xl mx-auto w-full">
-  <div class="space-y-6">
-    <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-      ${props.title || "Build Stunning Pages"}
-    </h1>
+<section class="w-full py-24 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
+  <!-- Decorative Background Elements -->
+  <div class="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-purple-200/40 to-pink-200/40 rounded-full blur-3xl"></div>
+  <div class="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-indigo-200/40 to-blue-200/40 rounded-full blur-3xl"></div>
 
-    <p class="text-lg text-gray-600">
-      ${props.subtitle || "Create beautiful sections with ease."}
-    </p>
+  <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16 items-center relative z-10">
+    <!-- LEFT SIDE - Text Content -->
+    <div class="animate-slideInLeft">
+      <!-- Badge -->
+      <div class="mb-6 inline-block">
+        <span class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 text-sm font-semibold shadow-md">
+          ⚡ Lightning Fast
+        </span>
+      </div>
 
-    <button class="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-      ${props.buttonText || "Explore"}
-    </button>
-  </div>
+      <!-- TITLE -->
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 leading-tight">
+        ${props.title || "Your Product, Simplified"}
+      </h1>
 
-  <div class="relative">
-    <img src="${props.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80"}" alt="Hero" class="w-full rounded-xl shadow-lg" />
+      <!-- Gradient Accent -->
+      <div class="w-20 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full mt-6 mb-6"></div>
+
+      <!-- SUBTITLE -->
+      <p class="text-lg md:text-xl text-gray-600 leading-relaxed max-w-lg">
+        ${props.subtitle || "A clean, modern layout that boosts conversions."}
+      </p>
+
+      <!-- BUTTON -->
+      <div class="mt-10">
+        <button class="group relative px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-lg font-semibold shadow-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 overflow-hidden">
+          <span class="relative z-10">${props.buttonText || "Try Now"}</span>
+          <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </button>
+      </div>
+
+      <!-- Feature Highlights -->
+      <div class="mt-10 flex flex-wrap gap-4">
+        <div class="flex items-center gap-2 text-gray-700">
+          <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+            <span class="text-green-600 text-sm">✓</span>
+          </div>
+          <span class="text-sm font-medium">Easy Setup</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-700">
+          <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+            <span class="text-green-600 text-sm">✓</span>
+          </div>
+          <span class="text-sm font-medium">Secure & Reliable</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-700">
+          <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+            <span class="text-green-600 text-sm">✓</span>
+          </div>
+          <span class="text-sm font-medium">24/7 Support</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT IMAGE -->
+    <div class="relative group animate-slideInRight">
+      <!-- Glow Effect -->
+      <div class="absolute -inset-6 bg-gradient-to-r from-indigo-500/30 via-purple-500/30 to-pink-500/30 blur-3xl rounded-3xl transition-opacity duration-500 opacity-0 group-hover:opacity-100"></div>
+
+      <!-- Image Container -->
+      <div class="relative rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 group-hover:shadow-purple-500/30">
+        <img src="${props.image || "/placeholder.png"}" alt="Hero" class="w-full h-auto rounded-2xl relative z-10 transition-transform duration-500 group-hover:scale-105" />
+        <div class="absolute inset-0 bg-gradient-to-tr from-indigo-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      </div>
+
+      <!-- Floating Badge -->
+      <div class="absolute -bottom-4 -right-4 bg-white rounded-2xl shadow-xl px-6 py-4 animate-float">
+        <div class="text-2xl font-bold gradient-text">99.9%</div>
+        <div class="text-xs text-gray-600">Uptime</div>
+      </div>
+    </div>
   </div>
 </section>
       `,
@@ -248,19 +332,56 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="relative py-24 px-6 text-center overflow-hidden bg-gray-900 text-white w-full">
-  <div class="relative z-10 max-w-4xl mx-auto mb-12">
-    <h1 class="text-4xl md:text-5xl font-bold mb-4">
-      ${props.title || "Watch Our Story"}
+<section class="relative w-full h-[90vh] flex items-center justify-center text-center overflow-hidden">
+  <!-- Background Video or Fallback -->
+  ${props.videoUrl ? `
+  <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover z-0">
+    <source src="${props.videoUrl}" type="video/mp4" />
+  </video>
+  ` : `
+  <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900"></div>
+  `}
+  
+  <!-- Dark Gradient Overlay -->
+  <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 z-[1]"></div>
+
+  <!-- Content -->
+  <div class="relative z-10 max-w-4xl mx-auto px-6">
+    <!-- Badge -->
+    <div class="mb-6 inline-block animate-fadeInUp">
+      <span class="px-5 py-2 rounded-full glass-dark text-white text-sm font-semibold shadow-2xl border border-white/30">
+        🎥 Experience the Future
+      </span>
+    </div>
+
+    <!-- TITLE -->
+    <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white drop-shadow-2xl mb-6 animate-fadeInUp" style="animation-delay: 0.1s;">
+      ${props.title || "Create Stunning Experiences"}
     </h1>
 
-    <p class="text-lg text-gray-300">
-      ${props.subtitle || "Experience the difference with our platform."}
+    <!-- SUBTITLE -->
+    <p class="text-xl md:text-2xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed animate-fadeInUp" style="animation-delay: 0.2s;">
+      ${props.subtitle || "Build beautiful, engaging websites with immersive video backgrounds."}
     </p>
+
+    <!-- DUAL BUTTONS -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fadeInUp" style="animation-delay: 0.3s;">
+      <button class="group relative px-8 py-4 bg-white text-black rounded-2xl text-lg font-semibold shadow-2xl hover:scale-110 transition-all duration-300 overflow-hidden">
+        <span class="relative z-10">${props.buttonText || "Get Started"}</span>
+        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-indigo-100 to-purple-100 transition-opacity"></div>
+      </button>
+
+      <button class="px-8 py-4 glass-dark text-white rounded-2xl text-lg font-semibold border border-white/40 hover:bg-white/20 hover:border-white/60 transition-all duration-300 hover:scale-105">
+        ${props.buttonText2 || "Watch Demo"}
+      </button>
+    </div>
   </div>
 
-  <div class="max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl">
-    <iframe src="${props.videoUrl || "https://www.youtube.com/embed/dQw4w9WgXcQ"}" class="w-full h-[450px]" frameborder="0" allowfullscreen></iframe>
+  <!-- Scroll Indicator -->
+  <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10 animate-float">
+    <div class="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center p-2">
+      <div class="w-1 h-3 bg-white rounded-full animate-pulse-slow"></div>
+    </div>
   </div>
 </section>
       `,
@@ -289,26 +410,68 @@ export const SectionRegistry = {
       },
 
       /* ---------- Pure HTML ---------- */
-      html: (props) => `
-<section class="min-h-[80vh] flex flex-col justify-center items-center text-center px-4 bg-gradient-to-b from-gray-50 to-white w-full">
-  <h1 class="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500 mb-6 tracking-tight">
-    ${props.title || "Design without Limits"}
-  </h1>
+      html: (props) => {
+        const title = props.title || "Design That Inspires";
+        const titleParts = title.split(" ");
+        const lastWord = titleParts.length > 1 ? titleParts[titleParts.length - 1] : title;
+        const restOfTitle = titleParts.length > 1 ? titleParts.slice(0, -1).join(" ") : "";
+        
+        return `
+<section class="relative min-h-[90vh] flex flex-col justify-center items-center text-center px-4 bg-gradient-to-b from-blue-900 via-blue-800 to-purple-900 w-full overflow-hidden">
+  <!-- Background Effects -->
+  <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px;"></div>
+  
+  <div class="relative z-10 max-w-5xl mx-auto">
+    <!-- Badge -->
+    <div class="mb-8 inline-block">
+      <span class="px-6 py-3 rounded-full text-white text-base font-semibold shadow-2xl border border-white/30" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);">
+        ✨ Premium Design System
+      </span>
+    </div>
 
-  <p class="text-xl text-gray-600 max-w-2xl mb-10 leading-relaxed">
-    ${props.subtitle || "Everything you need to build great websites."}
-  </p>
+    <!-- Title -->
+    <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight">
+      ${restOfTitle ? `<span class="text-white">${restOfTitle} </span>` : ''}
+      <span class="text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #ec4899, #f472b6, #a855f7);">${lastWord}</span>
+    </h1>
 
-  <div class="flex gap-4">
-    <button class="px-8 py-4 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition shadow-lg">
-      ${props.buttonText || "Get Started"}
-    </button>
-    <button class="px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-full font-semibold hover:bg-gray-50 transition shadow-sm">
-      Learn More
-    </button>
+    <!-- Decorative Line -->
+    <div class="w-32 h-1 mx-auto rounded-full mb-8" style="background: linear-gradient(to right, #ec4899, #a855f7);"></div>
+
+    <!-- Subtitle -->
+    <p class="text-xl md:text-2xl text-white mb-12 max-w-3xl mx-auto leading-relaxed">
+      ${props.subtitle || "Showcasing creative excellence through stunning visual storytelling and innovative design solutions."}
+    </p>
+
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+      <button class="px-10 py-5 rounded-xl text-lg md:text-xl font-bold text-white shadow-2xl transition-all duration-300 hover:scale-105" style="background: linear-gradient(to right, #ec4899, #a855f7);">
+        ${props.buttonText || "View Portfolio"}
+      </button>
+      <button class="px-10 py-5 rounded-xl text-lg md:text-xl font-bold text-white transition-all duration-300 hover:scale-105" style="background-color: #6b21a8;">
+        ${props.buttonText2 || "Contact Me"}
+      </button>
+    </div>
+
+    <!-- Social Proof -->
+    <div class="flex flex-wrap justify-center items-center gap-8 text-white text-sm">
+      <div class="flex items-center gap-2">
+        <span class="text-yellow-400 text-lg">⭐⭐⭐⭐⭐</span>
+        <span>5,000+ reviews</span>
+      </div>
+      <div class="w-px h-4 bg-white/30"></div>
+      <div>
+        <span class="font-semibold">10,000+</span> happy customers
+      </div>
+      <div class="w-px h-4 bg-white/30"></div>
+      <div>
+        Trusted by <span class="font-semibold">500+</span> companies
+      </div>
+    </div>
   </div>
 </section>
-      `,
+        `;
+      },
     },
   },
 
@@ -698,19 +861,43 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="cta-boxed w-full" style="padding: 4rem 1.5rem;">
-  <div style="max-width: 800px; margin: 0 auto; padding: 3rem; background: linear-gradient(135deg, #4f46e5, #9333ea); border-radius: 1.5rem; text-align: center;">
-    <h2 style="font-size: 2.5rem; font-weight: 700; color: white;">
-      ${props.title || "Limited Time Offer"}
-    </h2>
+<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-50">
+  <div class="max-w-5xl mx-auto">
+    <!-- Card Container -->
+    <div class="relative group">
+      <!-- Glow Effect -->
+      <div class="absolute -inset-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl blur opacity-40 group-hover:opacity-70 transition duration-500"></div>
+      
+      <!-- Main Card with Light Gradient Background -->
+      <div class="relative rounded-3xl p-8 md:p-16 text-center shadow-2xl hover:shadow-purple-500/30 transition-all animate-scaleIn" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(236, 72, 153, 0.9)); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15);">
+        <!-- Icon or Badge -->
+        <div class="mb-6 inline-block">
+          <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg animate-float">
+            🚀
+          </div>
+        </div>
 
-    <p style="margin-top: 1rem; font-size: 1.125rem; color: rgba(255,255,255,0.9);">
-      ${props.subtitle || "Get 50% off your first month."}
-    </p>
+        <!-- Title -->
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-6">
+          ${props.title || "Start Building Today"}
+        </h2>
 
-    <button style="margin-top: 2rem; padding: 0.875rem 2.5rem; font-size: 1rem; border-radius: 0.75rem; background: white; color: #4f46e5; border: none; font-weight: 600;">
-      ${props.buttonText || "Claim Offer"}
-    </button>
+        <!-- Subtitle -->
+        <p class="text-xl text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
+          ${props.subtitle || "Everything you need to create stunning websites in one powerful platform."}
+        </p>
+
+        <!-- CTA Button -->
+        <button class="px-10 py-5 bg-white text-indigo-600 rounded-2xl text-xl font-bold shadow-xl hover:scale-110 hover:shadow-2xl transition-all duration-300">
+          ${props.buttonText || "Try It Free"}
+        </button>
+
+        <!-- Trust Indicator -->
+        <p class="mt-6 text-white/60 text-sm">
+          ✓ No credit card required • ✓ 14-day free trial • ✓ Cancel anytime
+        </p>
+      </div>
+    </div>
   </div>
 </section>
       `,

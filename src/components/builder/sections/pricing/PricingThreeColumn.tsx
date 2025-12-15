@@ -27,7 +27,33 @@ export default function PricingThreeColumn({ plans = [], onEdit }) {
     }
   ];
 
-  const items = plans.length > 0 ? plans : defaultPlans;
+  // Use provided plans if available, otherwise use defaults
+  // Ensure we always have exactly 3 plans with complete data
+  let items = plans.length > 0 ? [...plans] : [...defaultPlans];
+  
+  // Fill missing slots with defaults if needed (create new objects, don't reuse references)
+  while (items.length < 3) {
+    const defaultIndex = items.length;
+    items.push({ ...defaultPlans[defaultIndex] || defaultPlans[0] });
+  }
+  
+  // Ensure each card has all required properties with defaults
+  items = items.map((plan, index) => {
+    const defaultPlan = defaultPlans[index] || defaultPlans[0];
+    return {
+      ...defaultPlan,
+      ...plan,
+      // Ensure features array exists
+      features: plan.features && Array.isArray(plan.features) ? plan.features : (defaultPlan.features || []),
+      // Ensure popular is boolean
+      popular: typeof plan.popular === 'boolean' ? plan.popular : (defaultPlan.popular || false),
+      // Ensure period exists
+      period: plan.period || defaultPlan.period || "/month",
+    };
+  });
+  
+  // Ensure we only show 3 cards
+  items = items.slice(0, 3);
 
   return (
     <section className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
@@ -91,7 +117,7 @@ export default function PricingThreeColumn({ plans = [], onEdit }) {
               {/* Features List */}
               <div className="p-8">
                 <ul className="space-y-4 mb-8">
-                  {plan.features.map((feature, fIndex) => (
+                  {(plan.features || []).map((feature, fIndex) => (
                     <li key={fIndex} className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-green-600 text-sm">✓</span>

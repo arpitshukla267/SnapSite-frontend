@@ -26,7 +26,31 @@ export default function TestimonialCards({ testimonials = [], onEdit }) {
     }
   ];
 
-  const items = testimonials.length > 0 ? testimonials : defaultTestimonials;
+  // Use provided testimonials if available, otherwise use defaults
+  // Ensure we always have exactly 3 testimonials with complete data
+  let items = testimonials.length > 0 ? [...testimonials] : [...defaultTestimonials];
+  
+  // Fill missing slots with defaults if needed (create new objects, don't reuse references)
+  while (items.length < 3) {
+    const defaultIndex = items.length;
+    items.push({ ...defaultTestimonials[defaultIndex] || defaultTestimonials[0] });
+  }
+  
+  // Ensure each card has all required properties with defaults
+  items = items.map((testimonial, index) => {
+    const defaultTestimonial = defaultTestimonials[index] || defaultTestimonials[0];
+    return {
+      ...defaultTestimonial,
+      ...testimonial,
+      // Ensure rating exists
+      rating: testimonial.rating || defaultTestimonial.rating || 5,
+      // Ensure image exists
+      image: testimonial.image || defaultTestimonial.image || `https://i.pravatar.cc/150?img=${index + 1}`,
+    };
+  });
+  
+  // Ensure we only show 3 cards
+  items = items.slice(0, 3);
 
   return (
     <section className="py-24 px-6 bg-gradient-to-b from-white to-gray-50">

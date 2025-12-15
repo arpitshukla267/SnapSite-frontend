@@ -47,7 +47,7 @@ function BuilderContent() {
     null
   );
   const [selectedField, setSelectedField] = useState<string | null>(null);
-  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number | string | null>(
     null
   );
   const [selectedCardType, setSelectedCardType] = useState<string | null>(null);
@@ -221,10 +221,68 @@ function BuilderContent() {
     if (selectedCardType && selectedCardIndex !== null) {
       const arrayName = `${selectedCardType}s`;
       const array = props[arrayName];
-      if (!array || !Array.isArray(array)) return "";
-      const filteredArray = array.filter((item) => item !== undefined);
-      if (!filteredArray[selectedCardIndex]) return "";
-      const card = filteredArray[selectedCardIndex];
+      
+      // Use index directly - don't filter (like PortfolioGrid)
+      const cardIndex = typeof selectedCardIndex === 'number' ? selectedCardIndex : Number(selectedCardIndex) || 0;
+      
+      // If array doesn't exist or is empty, get default values based on card type and index
+      if (!array || !Array.isArray(array) || array.length === 0) {
+        // Return default value based on card type, index, and field
+        let defaultCard;
+        if (selectedCardType === "plan") {
+          const defaultPlans = [
+            { name: "Starter", price: "$9", period: "/month", features: ["5 Projects", "Basic Support", "1GB Storage", "Email Integration"], popular: false },
+            { name: "Professional", price: "$29", period: "/month", features: ["Unlimited Projects", "Priority Support", "10GB Storage", "Advanced Analytics", "Custom Domain"], popular: true },
+            { name: "Enterprise", price: "$99", period: "/month", features: ["Everything in Pro", "Dedicated Support", "Unlimited Storage", "White Label", "API Access", "SLA"], popular: false }
+          ];
+          defaultCard = defaultPlans[cardIndex] || defaultPlans[0];
+        } else if (selectedCardType === "testimonial") {
+          const defaultTestimonials = [
+            { name: "Sarah Johnson", role: "CEO, TechCorp", image: "https://i.pravatar.cc/150?img=1", rating: 5, text: "This platform has completely transformed how we build websites. Absolutely incredible!" },
+            { name: "Michael Chen", role: "Designer, CreativeStudio", image: "https://i.pravatar.cc/150?img=2", rating: 5, text: "The easiest and most powerful website builder I've ever used. Highly recommended!" },
+            { name: "Emily Rodriguez", role: "Founder, StartupHub", image: "https://i.pravatar.cc/150?img=3", rating: 5, text: "Within minutes I had a beautiful, professional website up and running. Amazing!" }
+          ];
+          defaultCard = defaultTestimonials[cardIndex] || defaultTestimonials[0];
+        } else {
+          defaultCard = getDefaultCard(selectedCardType);
+        }
+        
+        if (selectedCardType === "plan" && selectedField.startsWith("features-")) {
+          const featureIndex = Number(selectedField.split("-")[1]);
+          return defaultCard.features?.[featureIndex] ?? "";
+        }
+        return defaultCard[selectedField] ?? "";
+      }
+      
+      // If card doesn't exist at this index, get default value for that specific card
+      if (!array[cardIndex] || typeof array[cardIndex] !== 'object') {
+        let defaultCard;
+        if (selectedCardType === "plan") {
+          const defaultPlans = [
+            { name: "Starter", price: "$9", period: "/month", features: ["5 Projects", "Basic Support", "1GB Storage", "Email Integration"], popular: false },
+            { name: "Professional", price: "$29", period: "/month", features: ["Unlimited Projects", "Priority Support", "10GB Storage", "Advanced Analytics", "Custom Domain"], popular: true },
+            { name: "Enterprise", price: "$99", period: "/month", features: ["Everything in Pro", "Dedicated Support", "Unlimited Storage", "White Label", "API Access", "SLA"], popular: false }
+          ];
+          defaultCard = defaultPlans[cardIndex] || defaultPlans[0];
+        } else if (selectedCardType === "testimonial") {
+          const defaultTestimonials = [
+            { name: "Sarah Johnson", role: "CEO, TechCorp", image: "https://i.pravatar.cc/150?img=1", rating: 5, text: "This platform has completely transformed how we build websites. Absolutely incredible!" },
+            { name: "Michael Chen", role: "Designer, CreativeStudio", image: "https://i.pravatar.cc/150?img=2", rating: 5, text: "The easiest and most powerful website builder I've ever used. Highly recommended!" },
+            { name: "Emily Rodriguez", role: "Founder, StartupHub", image: "https://i.pravatar.cc/150?img=3", rating: 5, text: "Within minutes I had a beautiful, professional website up and running. Amazing!" }
+          ];
+          defaultCard = defaultTestimonials[cardIndex] || defaultTestimonials[0];
+        } else {
+          defaultCard = getDefaultCard(selectedCardType);
+        }
+        
+        if (selectedCardType === "plan" && selectedField.startsWith("features-")) {
+          const featureIndex = Number(selectedField.split("-")[1]);
+          return defaultCard.features?.[featureIndex] ?? "";
+        }
+        return defaultCard[selectedField] ?? "";
+      }
+      
+      const card = array[cardIndex];
 
       if (
         selectedCardType === "plan" &&
@@ -277,27 +335,110 @@ function BuilderContent() {
     if (selectedCardType && selectedCardIndex !== null) {
       const arrayName = `${selectedCardType}s`;
       if (!props[arrayName]) props[arrayName] = [];
-      const array = [...props[arrayName]].filter((item) => item !== undefined);
-      if (!array[selectedCardIndex]) {
-        array[selectedCardIndex] = getDefaultCard(selectedCardType);
+      
+      // Create a deep copy of the array to avoid reference issues
+      let array = props[arrayName].map(card => card ? { ...card } : getDefaultCard(selectedCardType));
+      
+      // Use index directly (like PortfolioGrid does)
+      const cardIndex = typeof selectedCardIndex === 'number' ? selectedCardIndex : Number(selectedCardIndex) || 0;
+      
+      // For pricing and testimonials, ensure we have at least 3 cards with default data
+      if ((selectedCardType === "plan" || selectedCardType === "testimonial") && array.length === 0) {
+        // Initialize with default cards
+        const defaultCards = [];
+        if (selectedCardType === "plan") {
+          defaultCards.push(
+            { name: "Starter", price: "$9", period: "/month", features: ["5 Projects", "Basic Support", "1GB Storage", "Email Integration"], popular: false },
+            { name: "Professional", price: "$29", period: "/month", features: ["Unlimited Projects", "Priority Support", "10GB Storage", "Advanced Analytics", "Custom Domain"], popular: true },
+            { name: "Enterprise", price: "$99", period: "/month", features: ["Everything in Pro", "Dedicated Support", "Unlimited Storage", "White Label", "API Access", "SLA"], popular: false }
+          );
+        } else if (selectedCardType === "testimonial") {
+          defaultCards.push(
+            { name: "Sarah Johnson", role: "CEO, TechCorp", image: "https://i.pravatar.cc/150?img=1", rating: 5, text: "This platform has completely transformed how we build websites. Absolutely incredible!" },
+            { name: "Michael Chen", role: "Designer, CreativeStudio", image: "https://i.pravatar.cc/150?img=2", rating: 5, text: "The easiest and most powerful website builder I've ever used. Highly recommended!" },
+            { name: "Emily Rodriguez", role: "Founder, StartupHub", image: "https://i.pravatar.cc/150?img=3", rating: 5, text: "Within minutes I had a beautiful, professional website up and running. Amazing!" }
+          );
+        }
+        array = defaultCards.map(card => ({ ...card }));
       }
+      
+      // Ensure array is long enough for the selected index
+      while (array.length <= cardIndex) {
+        // For pricing and testimonials, use index-specific defaults
+        let defaultCard;
+        if (selectedCardType === "plan") {
+          const defaultPlans = [
+            { name: "Starter", price: "$9", period: "/month", features: ["5 Projects", "Basic Support", "1GB Storage", "Email Integration"], popular: false },
+            { name: "Professional", price: "$29", period: "/month", features: ["Unlimited Projects", "Priority Support", "10GB Storage", "Advanced Analytics", "Custom Domain"], popular: true },
+            { name: "Enterprise", price: "$99", period: "/month", features: ["Everything in Pro", "Dedicated Support", "Unlimited Storage", "White Label", "API Access", "SLA"], popular: false }
+          ];
+          defaultCard = defaultPlans[array.length] || defaultPlans[0];
+        } else if (selectedCardType === "testimonial") {
+          const defaultTestimonials = [
+            { name: "Sarah Johnson", role: "CEO, TechCorp", image: "https://i.pravatar.cc/150?img=1", rating: 5, text: "This platform has completely transformed how we build websites. Absolutely incredible!" },
+            { name: "Michael Chen", role: "Designer, CreativeStudio", image: "https://i.pravatar.cc/150?img=2", rating: 5, text: "The easiest and most powerful website builder I've ever used. Highly recommended!" },
+            { name: "Emily Rodriguez", role: "Founder, StartupHub", image: "https://i.pravatar.cc/150?img=3", rating: 5, text: "Within minutes I had a beautiful, professional website up and running. Amazing!" }
+          ];
+          defaultCard = defaultTestimonials[array.length] || defaultTestimonials[0];
+        } else {
+          defaultCard = getDefaultCard(selectedCardType);
+        }
+        array.push({ ...defaultCard });
+      }
+      
+      // Ensure the card at this index exists and is a new object (not shared reference)
+      if (!array[cardIndex] || typeof array[cardIndex] !== 'object') {
+        // Use index-specific default for pricing and testimonials
+        let defaultCard;
+        if (selectedCardType === "plan") {
+          const defaultPlans = [
+            { name: "Starter", price: "$9", period: "/month", features: ["5 Projects", "Basic Support", "1GB Storage", "Email Integration"], popular: false },
+            { name: "Professional", price: "$29", period: "/month", features: ["Unlimited Projects", "Priority Support", "10GB Storage", "Advanced Analytics", "Custom Domain"], popular: true },
+            { name: "Enterprise", price: "$99", period: "/month", features: ["Everything in Pro", "Dedicated Support", "Unlimited Storage", "White Label", "API Access", "SLA"], popular: false }
+          ];
+          defaultCard = defaultPlans[cardIndex] || defaultPlans[0];
+        } else if (selectedCardType === "testimonial") {
+          const defaultTestimonials = [
+            { name: "Sarah Johnson", role: "CEO, TechCorp", image: "https://i.pravatar.cc/150?img=1", rating: 5, text: "This platform has completely transformed how we build websites. Absolutely incredible!" },
+            { name: "Michael Chen", role: "Designer, CreativeStudio", image: "https://i.pravatar.cc/150?img=2", rating: 5, text: "The easiest and most powerful website builder I've ever used. Highly recommended!" },
+            { name: "Emily Rodriguez", role: "Founder, StartupHub", image: "https://i.pravatar.cc/150?img=3", rating: 5, text: "Within minutes I had a beautiful, professional website up and running. Amazing!" }
+          ];
+          defaultCard = defaultTestimonials[cardIndex] || defaultTestimonials[0];
+        } else {
+          defaultCard = getDefaultCard(selectedCardType);
+        }
+        array[cardIndex] = { ...defaultCard };
+      } else {
+        // Create a new object to avoid reference sharing
+        array[cardIndex] = { ...array[cardIndex] };
+      }
+      
+      // Update ONLY the specific field - don't merge with defaults
       if (
         selectedCardType === "plan" &&
         selectedField!.startsWith("features-")
       ) {
         const featureIndex = Number(selectedField!.split("-")[1]);
-        if (!array[selectedCardIndex].features)
-          array[selectedCardIndex].features = [];
-        const features = [...array[selectedCardIndex].features];
+        if (!array[cardIndex].features) {
+          array[cardIndex].features = [];
+        }
+        const features = [...(array[cardIndex].features || [])];
+        // Ensure feature array is long enough
+        while (features.length <= featureIndex) {
+          features.push("");
+        }
         features[featureIndex] = newValue;
-        array[selectedCardIndex] = { ...array[selectedCardIndex], features };
+        array[cardIndex] = { ...array[cardIndex], features };
       } else {
-        array[selectedCardIndex] = {
-          ...array[selectedCardIndex],
+        // Directly update only the selected field - preserve all other fields
+        array[cardIndex] = {
+          ...array[cardIndex],
           [selectedField!]: newValue,
         };
       }
-      props[arrayName] = array.filter((item) => item !== undefined);
+      
+      // Save the updated array (create new array reference)
+      props[arrayName] = [...array];
     } else if (selectedField!.startsWith("items-")) {
       const parts = selectedField!.split("-");
       const index = Number(parts[1]);
@@ -944,7 +1085,7 @@ function SortableSection({
   blockIndex: number;
   isSelected: boolean;
   setSelectedBlockIndex: (index: number) => void;
-  onEdit: (field: string, cardIndex: number | null, cardType: string | null) => void;
+  onEdit: (field: string, cardIndex: number | string | null, cardType: string | null) => void;
   onDelete: () => void;
   onMove: (direction: 'up' | 'down') => void;
   isFirst: boolean;
