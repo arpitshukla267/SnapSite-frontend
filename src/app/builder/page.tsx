@@ -6,11 +6,9 @@ import { getTemplateBySlug } from "../../lib/getTemplateBySlug";
 import { SectionRegistry } from "../../lib/sectionRegistry";
 import Sidebar from "../../components/builder/Sidebar";
 import BuilderHeader from "../../components/builder/BuilderHeader";
-import { ImageIcon } from "lucide-react";
-import { Upload } from "lucide-react";
-import { X } from "lucide-react";
-import { Type } from "lucide-react";
+import { ImageIcon, Upload, X, Type, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { exportHTMLZip } from "../../lib/exporter";
 
 // DnD Kit Imports
 import {
@@ -22,6 +20,7 @@ import {
   DragOverlay,
   defaultDropAnimationSideEffects,
   useDroppable,
+  TouchSensor,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -79,6 +78,12 @@ function BuilderContent() {
   // Drag sensor
   const sensors = useSensors(
     useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
       activationConstraint: {
         delay: 200,
         tolerance: 5,
@@ -364,6 +369,18 @@ function BuilderContent() {
     setIsSidebarOpen(false);
   };
 
+  const handleExport = async () => {
+    if (layout.length === 0) return;
+    await exportHTMLZip(layout);
+  };
+
+  const handleMoveSection = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= layout.length) return;
+    
+    setLayout(prev => arrayMove(prev, index, newIndex));
+  };
+
   const dropAnimation = {
     sideEffects: defaultDropAnimationSideEffects({
       styles: {
@@ -401,6 +418,7 @@ function BuilderContent() {
           templateName={templateSlug || "Site"}
           viewMode={viewMode}
           setViewMode={setViewMode}
+          onExport={handleExport}
         />
 
         {/* BODY */}
@@ -473,6 +491,9 @@ function BuilderContent() {
                         setSelectedBlockIndex={setSelectedBlockIndex}
                         onEdit={handleEdit}
                         onDelete={() => openDeleteModal(block.id)}
+                        onMove={(direction) => handleMoveSection(index, direction)}
+                        isFirst={index === 0}
+                        isLast={index === layout.length - 1}
                       />
 
                       {/* Insert zone after this item (index+1) */}
@@ -739,7 +760,7 @@ function BuilderContent() {
           {/* Mobile Overlay for Editor */}
           {selectedBlockIndex !== null && selectedField && isEditorOpen && (
             <div
-              className="fixed inset-0 bg-black/50 z-[55] lg:hidden backdrop-blur-sm"
+              className="fixed inset-0 bg-black/50 z-[55] lg:hidden"
               onClick={() => setIsEditorOpen(false)}
             />
           )}
@@ -915,9 +936,24 @@ function SortableSection({
   setSelectedBlockIndex,
   onEdit,
   onDelete,
+  onMove,
+  isFirst,
+  isLast,
+}: {
+  block: any;
+  blockIndex: number;
+  isSelected: boolean;
+  setSelectedBlockIndex: (index: number) => void;
+  onEdit: (field: string, cardIndex: number | null, cardType: string | null) => void;
+  onDelete: () => void;
+  onMove: (direction: 'up' | 'down') => void;
+  isFirst: boolean;
+  isLast: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: block.id });
+  
+  const [showMoveMenu, setShowMoveMenu] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -943,14 +979,21 @@ function SortableSection({
           ? "ring-2 ring-blue-500 z-10"
           : "hover:ring-1 hover:ring-blue-300"
       }`}
-      onClick={() => setSelectedBlockIndex(blockIndex)}
+      onClick={() => {
+          setSelectedBlockIndex(blockIndex);
+          setShowMoveMenu(false); // allow closing by clicking content
+      }}
     >
       {/* Drag handle */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute left-1/2 -top-3 -translate-x-1/2 w-16 h-6 bg-white border border-gray-200 shadow-md rounded-full cursor-grab flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-gray-50 hover:scale-105"
-        title="Drag to Move"
+        onDoubleClick={(e) => {
+            e.stopPropagation(); // prevent opening editor
+            setShowMoveMenu(!showMoveMenu);
+        }}
+        className="absolute left-1/2 -top-3 -translate-x-1/2 w-16 h-6 bg-white border border-gray-200 shadow-md rounded-full cursor-grab flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20 hover:bg-gray-50 hover:scale-105"
+        title="Double-click for Move Controls (Mobile)"
       >
         <div className="flex space-x-1">
           <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
@@ -959,29 +1002,42 @@ function SortableSection({
         </div>
       </div>
 
+      {/* Move Menu (Mobile Helper) */}
+      {showMoveMenu && (
+        <div className="absolute left-1/2 -top-12 -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-200 p-1 flex items-center gap-1 z-30 animate-scaleIn">
+            <button
+                disabled={isFirst}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onMove('up');
+                }}
+                className={`p-1.5 rounded-md hover:bg-gray-100 ${isFirst ? 'text-gray-300' : 'text-gray-600'}`}
+            >
+                <ChevronUp className="w-4 h-4" />
+            </button>
+            <div className="w-px h-4 bg-gray-200" />
+            <button
+                disabled={isLast}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onMove('down');
+                }}
+                className={`p-1.5 rounded-md hover:bg-gray-100 ${isLast ? 'text-gray-300' : 'text-gray-600'}`}
+            >
+                <ChevronDown className="w-4 h-4" />
+            </button>
+        </div>
+      )}
+
       <button
         onClick={(e) => {
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute right-4 top-4 w-8 h-8 bg-white/90 backdrop-blur text-red-500 border border-red-100 shadow-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-red-50 hover:border-red-200 hover:shadow-md hover:scale-105"
+        className="absolute right-4 top-4 w-8 h-8 bg-white/90 backdrop-blur text-red-500 border border-red-100 shadow-sm rounded-lg flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20 hover:bg-red-50 hover:border-red-200 hover:shadow-md hover:scale-105"
         title="Delete Section"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 6h18" />
-          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-        </svg>
+        <Trash2 className="w-4 h-4" />
       </button>
 
       {/* The actual content */}

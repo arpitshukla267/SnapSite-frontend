@@ -1,20 +1,23 @@
 "use client";
 
-import { BiDesktop, BiMobile, BiTable, BiSave, BiShow, BiArrowBack } from "react-icons/bi";
+import { BiDesktop, BiMobile, BiTable, BiSave, BiShow, BiArrowBack, BiDownload } from "react-icons/bi";
 import Link from "next/link";
+import { exportNextJsZip, exportReactZip, exportHTMLZip } from "../../lib/exporter";
 
 export default function BuilderHeader({ 
   templateName, 
   viewMode, 
   setViewMode,
   onSave,
-  onPreview
+  onPreview,
+  onExport
 }: {
   templateName: string;
   viewMode: "desktop" | "tablet" | "mobile";
   setViewMode: (mode: "desktop" | "tablet" | "mobile") => void;
   onSave?: () => void;
   onPreview?: () => void;
+  onExport?: () => void;
 }) {
   return (
     <div className="h-16 fixed top-0 left-0 right-0 z-[10000]
@@ -43,7 +46,7 @@ export default function BuilderHeader({
       </div>
 
       {/* Center: Device Toggles */}
-      <div className="flex items-center bg-white/5 p-1 rounded-lg border border-white/10">
+      <div className="hidden lg:flex items-center bg-white/5 p-1 rounded-lg border border-white/10">
         <button
           onClick={() => setViewMode("desktop")}
           className={`p-2 rounded-md transition-all
@@ -56,21 +59,6 @@ export default function BuilderHeader({
         >
           <BiDesktop className="w-5 h-5" />
         </button>
-
-        {/* Tablet (optional)
-        <button
-          onClick={() => setViewMode("tablet")}
-          className={`p-2 rounded-md transition-all
-            ${
-              viewMode === "tablet"
-                ? "bg-white/10 text-blue-400 shadow-inner"
-                : "text-gray-400 hover:text-white"
-            }`}
-          title="Tablet View"
-        >
-          <BiTable className="w-5 h-5" />
-        </button>
-        */}
 
         <button
           onClick={() => setViewMode("mobile")}
@@ -88,9 +76,18 @@ export default function BuilderHeader({
 
       {/* Right: Actions */}
       <div className="flex items-center space-x-3 w-64 justify-end">
+        {/* Mobile Download/Export */}
+        <button
+           onClick={onExport}
+           className="lg:hidden p-2 text-gray-400 hover:text-white transition"
+           title="Download Project"
+        >
+          <BiDownload className="w-5 h-5" />
+        </button>
+
         <button
           onClick={onPreview}
-          className="flex items-center space-x-2 px-3 py-2
+          className="hidden lg:flex items-center space-x-2 px-3 py-2
             text-sm font-medium text-gray-400
             hover:text-white hover:bg-white/5
             rounded-md transition"

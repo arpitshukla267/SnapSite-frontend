@@ -105,7 +105,7 @@ export default function Sidebar({ layout }: { layout: any[] }) {
       flex flex-col"
     >
       {/* HEADER */}
-      <div className="p-6 border-b border-white/10 bg-[#0b0f19] sticky top-0 z-20">
+      <div className="hidden lg:block p-6 border-b border-white/10 bg-[#0b0f19] sticky top-0 z-20">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <div className="w-2 h-6 bg-gradient-to-b from-indigo-500 to-fuchsia-500 rounded-full" />
