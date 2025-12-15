@@ -63,7 +63,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="relative py-32 px-6 bg-gradient-to-b from-gray-50 to-white text-center overflow-hidden min-h-screen flex flex-col justify-center items-center">
+<section class="relative py-32 px-6 bg-gradient-to-b from-gray-50 to-white text-center overflow-hidden min-h-screen flex flex-col justify-center items-center w-full">
   <!-- Grid Background -->
   <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 30px 30px;"></div>
   
@@ -202,7 +202,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-20 px-6 max-w-7xl mx-auto">
+<section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center py-20 px-6 max-w-7xl mx-auto w-full">
   <div class="space-y-6">
     <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
       ${props.title || "Build Stunning Pages"}
@@ -248,7 +248,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="relative py-24 px-6 text-center overflow-hidden bg-gray-900 text-white">
+<section class="relative py-24 px-6 text-center overflow-hidden bg-gray-900 text-white w-full">
   <div class="relative z-10 max-w-4xl mx-auto mb-12">
     <h1 class="text-4xl md:text-5xl font-bold mb-4">
       ${props.title || "Watch Our Story"}
@@ -290,7 +290,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="min-h-[80vh] flex flex-col justify-center items-center text-center px-4 bg-gradient-to-b from-gray-50 to-white">
+<section class="min-h-[80vh] flex flex-col justify-center items-center text-center px-4 bg-gradient-to-b from-gray-50 to-white w-full">
   <h1 class="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500 mb-6 tracking-tight">
     ${props.title || "Design without Limits"}
   </h1>
@@ -337,7 +337,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-20 px-6 bg-gray-50">
+<section class="py-20 px-6 bg-gray-50 w-full">
   <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
     <div>
       <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">
@@ -382,7 +382,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-24 px-6 text-center bg-gradient-to-b from-white to-gray-100">
+<section class="py-24 px-6 text-center bg-gradient-to-b from-white to-gray-100 w-full">
   <div class="max-w-4xl mx-auto">
 
     <div class="relative w-44 h-44 mx-auto mb-8">
@@ -426,7 +426,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-20 px-6 bg-white">
+<section class="py-20 px-6 bg-white w-full">
   <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-14 items-center">
 
     <div class="relative group">
@@ -475,7 +475,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-100">
+<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-100 w-full">
   <div class="max-w-7xl mx-auto text-center mb-16">
     <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
       ${props.title || "Our Features"}
@@ -537,7 +537,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-24 px-6 bg-white">
+<section class="py-24 px-6 bg-white w-full">
   <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-12">
     ${(props.features || [
         { title: "Speed", desc: "Optimized for fast load times" },
@@ -585,7 +585,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-20 px-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white text-center relative overflow-hidden">
+<section class="py-20 px-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white text-center relative overflow-hidden w-full">
   
   <!-- Background Decorations -->
   <div class="absolute top-0 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
@@ -698,7 +698,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="cta-boxed" style="padding: 4rem 1.5rem;">
+<section class="cta-boxed w-full" style="padding: 4rem 1.5rem;">
   <div style="max-width: 800px; margin: 0 auto; padding: 3rem; background: linear-gradient(135deg, #4f46e5, #9333ea); border-radius: 1.5rem; text-align: center;">
     <h2 style="font-size: 2.5rem; font-weight: 700; color: white;">
       ${props.title || "Limited Time Offer"}
@@ -742,7 +742,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-50">
+<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-50 w-full">
   <div class="max-w-7xl mx-auto text-center mb-16">
     <div class="mb-4 inline-block">
       <span class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 text-sm font-semibold">
@@ -750,10 +750,10 @@ export const SectionRegistry = {
       </span>
     </div>
     <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-      What Our Customers Say
+      ${props.title || "What Our Customers Say"}
     </h2>
     <p class="text-gray-600 text-lg max-w-2xl mx-auto">
-      Join thousands of satisfied users who have transformed their businesses
+      ${props.subtitle || "Join thousands of satisfied users who have transformed their businesses"}
     </p>
   </div>
 
@@ -765,12 +765,19 @@ export const SectionRegistry = {
     ]).map(t => `
       <div class="group relative p-8 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
         <div class="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-100 transition blur"></div>
-        <div class="relative bg-white rounded-2xl p-1">
+        <div class="relative bg-white rounded-2xl p-6 h-full flex flex-col">
+          <!-- Quote Icon -->
+          <div class="mb-4 text-purple-200">
+             <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+               <path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 8.44772 14.017 9V11C14.017 11.5523 13.5693 12 13.017 12H12.017V5H22.017V15C22.017 18.3137 19.3307 21 16.017 21H14.017ZM5.01697 21L5.01697 18C5.01697 16.8954 5.9124 16 7.01697 16H10.017C10.5693 16 11.017 15.5523 11.017 15V9C11.017 8.44772 10.5693 8 10.017 8H6.01697C5.46468 8 5.01697 8.44772 5.01697 9V11C5.01697 11.5523 4.56925 12 4.01697 12H3.01697V5H13.017V15C13.017 18.3137 10.3307 21 7.01697 21H5.01697Z" />
+             </svg>
+          </div>
+
           <div class="flex gap-1 mb-4 text-yellow-400 text-lg">
             ${Array(t.rating || 5).fill('⭐').join('')}
           </div>
-          <p class="text-gray-700 mb-6 leading-relaxed italic">"${t.text}"</p>
-          <div class="flex items-center gap-4">
+          <p class="text-gray-700 mb-6 leading-relaxed italic flex-grow">"${t.text}"</p>
+          <div class="flex items-center gap-4 mt-auto">
             <img src="${t.image || 'https://i.pravatar.cc/150'}" alt="${t.name}" class="w-14 h-14 rounded-full object-cover border-2 border-indigo-200" />
             <div>
               <div class="font-semibold text-gray-900">${t.name}</div>
@@ -811,7 +818,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
+<section class="py-24 px-6 bg-gradient-to-br from-gray-50 to-white w-full">
   <div class="max-w-7xl mx-auto text-center mb-16">
     <div class="mb-4 inline-block">
       <span class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 text-sm font-semibold">
@@ -898,7 +905,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
+<section class="py-24 px-6 bg-gradient-to-br from-gray-50 to-white w-full">
   <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
 
     <div class="animate-slideInLeft">
@@ -987,7 +994,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-12 px-6">
+<footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-12 px-6 w-full">
   <div class="max-w-7xl mx-auto">
     <div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-8">
       <div class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
@@ -1045,7 +1052,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-50">
+<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-50 w-full">
   <div class="max-w-7xl mx-auto text-center mb-16">
     <div class="mb-4 inline-block">
       <span class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 text-sm font-semibold">
@@ -1117,7 +1124,7 @@ export const SectionRegistry = {
 
       /* ---------- Pure HTML ---------- */
       html: (props) => `
-<section class="py-24 px-6 bg-gradient-to-b from-gray-50 to-white">
+<section class="py-24 px-6 bg-gradient-to-b from-gray-50 to-white w-full">
   <div class="max-w-7xl mx-auto text-center mb-16">
     <div class="mb-4 inline-block">
       <span class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 text-sm font-semibold">
