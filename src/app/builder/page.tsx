@@ -57,6 +57,10 @@ function BuilderContent() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
 
+  // Responsive State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+
   // Load Template
   useEffect(() => {
     if (!templateSlug) return;
@@ -167,6 +171,7 @@ function BuilderContent() {
     ) {
       setSelectedBlockIndex(null);
       setSelectedField(null);
+      setIsEditorOpen(false);
     }
   };
 
@@ -354,6 +359,9 @@ function BuilderContent() {
     setSelectedField(fieldName);
     setSelectedCardIndex(cardIndex);
     setSelectedCardType(cardType);
+    setIsEditorOpen(true);
+    // Close sidebar on mobile when editing starts
+    setIsSidebarOpen(false);
   };
 
   const dropAnimation = {
@@ -398,9 +406,35 @@ function BuilderContent() {
         {/* BODY */}
         <div className="flex flex-1 pt-16 overflow-hidden relative">
           {/* SIDEBAR */}
-          <div className="w-80 border-r border-white/10 bg-gray-900/95 backdrop-blur-xl shrink-0">
-            <Sidebar layout={layout} />
+          <div
+            className={`
+              fixed lg:static inset-x-0 bottom-0 z-[60] 
+              w-full lg:w-80 lg:inset-auto lg:h-full lg:border-r border-white/10 bg-gray-900/95 backdrop-blur-xl shrink-0
+              transform transition-transform duration-300 ease-in-out
+              ${isSidebarOpen ? "translate-y-0" : "translate-y-full"}
+              lg:translate-y-0
+              h-[35vh] lg:h-auto
+              border-t lg:border-t-0
+            `}
+          >
+            <div className="h-full flex flex-col">
+               {/* Mobile Header for Sidebar (drag handle/close) */}
+               <div className="lg:hidden flex justify-center p-2" onClick={() => setIsSidebarOpen(false)}>
+                 <div className="w-12 h-1.5 bg-gray-600 rounded-full cursor-pointer hover:bg-gray-500 transition-colors" />
+               </div>
+               <div className="flex-1 overflow-hidden">
+                  <Sidebar layout={layout} />
+               </div>
+            </div>
           </div>
+          
+          {/* Mobile Overlay for Sidebar */}
+          {isSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-[55] lg:hidden backdrop-blur-sm"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
 
           {/* CANVAS */}
           <div className="flex-1 bg-gradient-to-br from-gray-950 via-gray-900 to-black overflow-y-auto scroll-minimal p-4 sm:p-6 lg:p-8 flex justify-center">
@@ -451,8 +485,20 @@ function BuilderContent() {
           </div>
 
           {/* RIGHT EDITOR PANEL */}
-          {selectedBlockIndex !== null && selectedField && (
-            <div className="w-80 border-l border-white/10 bg-gray-900/80 backdrop-blur-xl flex flex-col shrink-0 animate-slideIn">
+          <div
+             className={`
+               fixed lg:static inset-x-0 bottom-0 z-[60]
+               w-full lg:w-80 lg:inset-auto lg:h-auto lg:border-l border-white/10 bg-gray-900/95 backdrop-blur-xl flex flex-col shrink-0
+               transform transition-transform duration-300 ease-in-out
+               ${selectedBlockIndex !== null && selectedField && isEditorOpen ? "translate-y-0" : "translate-y-full lg:translate-y-0 lg:hidden"}
+               lg:${selectedBlockIndex !== null && selectedField ? "flex" : "hidden"}
+               max-h-[35vh] lg:max-h-none h-[35vh] lg:h-auto
+               border-t lg:border-t-0
+               animate-none
+             `}
+          >
+           {selectedBlockIndex !== null && selectedField && (
+             <>
               {/* Panel Header */}
               <div className="p-4 border-b border-white/10 flex justify-between items-center shrink-0">
                 <div className="flex items-center gap-2">
@@ -470,6 +516,7 @@ function BuilderContent() {
                   onClick={() => {
                     setSelectedBlockIndex(null);
                     setSelectedField(null);
+                    setIsEditorOpen(false);
                   }}
                 >
                   <X size={18} />
@@ -677,14 +724,61 @@ function BuilderContent() {
                   onClick={() => {
                     setSelectedBlockIndex(null);
                     setSelectedField(null);
+                    setIsEditorOpen(false);
                   }}
                   className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-lg font-semibold transition-all shadow-lg shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Apply Changes
                 </button>
               </div>
-            </div>
+
+             </>
+           )}
+          </div>
+          
+          {/* Mobile Overlay for Editor */}
+          {selectedBlockIndex !== null && selectedField && isEditorOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-[55] lg:hidden backdrop-blur-sm"
+              onClick={() => setIsEditorOpen(false)}
+            />
           )}
+
+          {/* MOBILE ACTION BAR */}
+          <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[50] flex items-center gap-4 bg-gray-900/90 backdrop-blur-xl border border-white/10 p-2 rounded-full shadow-2xl">
+             <button
+               onClick={() => {
+                 setIsSidebarOpen(!isSidebarOpen);
+                 setIsEditorOpen(false);
+               }}
+               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                 isSidebarOpen 
+                   ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25" 
+                   : "text-gray-400 hover:text-white hover:bg-white/10"
+               }`}
+             >
+               Sections
+             </button>
+             <div className="w-px h-4 bg-white/20" />
+             <button
+               onClick={() => {
+                 if (selectedBlockIndex !== null) {
+                   setIsEditorOpen(!isEditorOpen);
+                   setIsSidebarOpen(false);
+                 }
+               }}
+               disabled={selectedBlockIndex === null}
+               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                 isEditorOpen
+                   ? "bg-purple-600 text-white shadow-lg shadow-purple-500/25"
+                   : selectedBlockIndex !== null
+                     ? "text-gray-400 hover:text-white hover:bg-white/10"
+                     : "text-gray-600 cursor-not-allowed"
+               }`}
+             >
+               Edit
+             </button>
+          </div>
         </div>
 
         {/* DELETE CONFIRMATION MODAL */}

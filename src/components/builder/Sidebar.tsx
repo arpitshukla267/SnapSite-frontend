@@ -133,7 +133,7 @@ export default function Sidebar({ layout }: { layout: any[] }) {
                   </p>
                 </div>
                 <div className="p-2">
-                  <button
+                  {/* <button
                     onClick={async () => {
                       console.log("Export Next.js clicked", layout);
                       await exportNextJsZip(layout);
@@ -154,7 +154,7 @@ export default function Sidebar({ layout }: { layout: any[] }) {
                   >
                     <span className="text-xs font-mono bg-white/5 px-2 py-0.5 rounded group-hover:bg-blue-500/30">⚛</span>
                     <span className="font-medium">React</span>
-                  </button>
+                  </button> */}
                   <button
                     onClick={async () => {
                       console.log("Export HTML clicked", layout);
@@ -176,7 +176,7 @@ export default function Sidebar({ layout }: { layout: any[] }) {
         </p>
 
         {/* Search */}
-        <div className="relative group">
+        <div className="hidden lg:block relative group">
           <BiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-indigo-400 transition-colors" />
           <input
             type="text"
