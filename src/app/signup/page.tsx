@@ -3,7 +3,7 @@ import { Mail, Lock, User, Phone } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import Loader from "../../components/ui/Loader";
-import { API_BASE_URL } from "../../config";
+import { API_BASE_URL, validateApiUrl } from "../../config";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +25,12 @@ export default function Signup() {
     const phone = formData.get("phone");
     const password = formData.get("password");
     const confirmPassword = formData.get("confirmPassword");
+
+    if (!validateApiUrl()) {
+      setError("API configuration error. Please check your environment variables.");
+      setIsLoading(false);
+      return;
+    }
 
     // Call backend API
     try {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, Grid, List, X, Eye, Sparkles, ArrowRight, Check, Heart } from "lucide-react";
 import { SectionRegistry } from "../../lib/sectionRegistry";
-import { API_BASE_URL } from "../../config";
+import { API_BASE_URL, validateApiUrl } from "../../config";
 
 // Mock data for demonstration
 const mockTemplates = [
@@ -122,9 +122,59 @@ export default function TemplatesPage() {
   // Fetch saved templates (public templates)
   useEffect(() => {
     const fetchSavedTemplates = async () => {
+      // Validate API URL before proceeding
+      if (!validateApiUrl()) {
+        setLoadingSaved(false);
+        return;
+      }
+      
+      // Double check API_BASE_URL is valid and is a proper URL
+      if (!API_BASE_URL || API_BASE_URL.trim() === "") {
+        console.warn("API_BASE_URL is not configured. Skipping fetch.");
+        setLoadingSaved(false);
+        return;
+      }
+
+      // Validate that API_BASE_URL is a valid URL format
+      try {
+        new URL(API_BASE_URL);
+      } catch (e) {
+        console.warn("API_BASE_URL is not a valid URL. Skipping fetch.", API_BASE_URL);
+        setLoadingSaved(false);
+        return;
+      }
+
       setLoadingSaved(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/templates/saved/all`);
+        const url = `${API_BASE_URL}/api/templates/saved/all`;
+        
+        // Final check - ensure URL is valid before fetch
+        if (!url || url.includes("undefined") || url.includes("null") || !url.startsWith("http")) {
+          console.warn("Invalid API URL constructed. Skipping fetch.", url);
+          setLoadingSaved(false);
+          return;
+        }
+
+        // Validate URL format
+        try {
+          new URL(url);
+        } catch (urlError) {
+          console.warn("Invalid URL format. Skipping fetch.", url);
+          setLoadingSaved(false);
+          return;
+        }
+
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).catch((fetchError) => {
+          // Handle fetch errors gracefully
+          console.warn("Network error fetching saved templates:", fetchError.message);
+          throw fetchError;
+        });
+        
         if (res.ok) {
           const data = await res.json();
           // Transform saved templates to match template format
@@ -145,9 +195,16 @@ export default function TemplatesPage() {
               isPublic: true, // Mark as public
             }));
           setSavedTemplates(transformed);
+        } else {
+          console.warn("Failed to fetch saved templates:", res.status, res.statusText);
         }
-      } catch (err) {
-        console.error("Error fetching saved templates:", err);
+      } catch (err: any) {
+        // Silently handle network errors - this is expected if API is not configured
+        if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
+          console.warn("Could not connect to API. Make sure NEXT_PUBLIC_API_URL is set correctly.");
+        } else {
+          console.error("Error fetching saved templates:", err);
+        }
       } finally {
         setLoadingSaved(false);
       }
@@ -166,21 +223,66 @@ export default function TemplatesPage() {
     if (!token) return;
 
     const checkWishlistStatuses = async () => {
+      // Validate API URL before proceeding
+      if (!validateApiUrl()) {
+        return;
+      }
+      
+      // Double check API_BASE_URL is valid and is a proper URL
+      if (!API_BASE_URL || API_BASE_URL.trim() === "") {
+        console.warn("API_BASE_URL is not configured. Skipping wishlist check.");
+        return;
+      }
+
+      // Validate that API_BASE_URL is a valid URL format
+      try {
+        new URL(API_BASE_URL);
+      } catch (e) {
+        console.warn("API_BASE_URL is not a valid URL. Skipping wishlist check.", API_BASE_URL);
+        return;
+      }
+
       try {
         const statuses: Record<string, boolean> = {};
         for (const template of templates) {
-          // Check wishlist for all templates including user-designed
-          const res = await fetch(`${API_BASE_URL}/api/templates/wishlist/check/${template.slug}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (res.ok) {
-            const data = await res.json();
-            statuses[template.slug] = data.inWishlist;
+          try {
+            // Check wishlist for all templates including user-designed
+            const url = `${API_BASE_URL}/api/templates/wishlist/check/${template.slug}`;
+            
+            // Final check - ensure URL is valid before fetch
+            if (!url || url.includes("undefined") || url.includes("null")) {
+              console.warn(`Invalid API URL for template ${template.slug}. Skipping.`, url);
+              continue;
+            }
+
+            const res = await fetch(url, {
+              method: "GET",
+              headers: { 
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            });
+            if (res.ok) {
+              const data = await res.json();
+              statuses[template.slug] = data.inWishlist;
+            }
+          } catch (templateErr: any) {
+            // Skip individual template errors, continue with others
+            if (templateErr.message?.includes("Failed to fetch") || templateErr.name === "TypeError") {
+              // Network error - skip this template
+              continue;
+            }
+            console.warn(`Error checking wishlist for ${template.slug}:`, templateErr);
           }
         }
         setWishlistStatus(statuses);
-      } catch (err) {
-        console.error("Error checking wishlist status:", err);
+      } catch (err: any) {
+        // Silently handle network errors - this is expected if API is not configured
+        if (err.message?.includes("Failed to fetch") || err.name === "TypeError") {
+          console.warn("Could not connect to API for wishlist check. Make sure NEXT_PUBLIC_API_URL is set correctly.");
+        } else {
+          console.error("Error checking wishlist status:", err);
+        }
       }
     };
 

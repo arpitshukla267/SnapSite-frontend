@@ -33,6 +33,11 @@ export default function AccountPage() {
   }, [router]);
 
   const fetchAllData = async (token: string) => {
+    if (!validateApiUrl()) {
+      setLoading(false);
+      toast.error("API configuration error. Please check your environment variables.");
+      return;
+    }
     setLoading(true);
     try {
       const [wishlistRes, savedRes, exportedRes] = await Promise.all([

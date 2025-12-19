@@ -9,7 +9,7 @@ import BuilderHeader from "../../components/builder/BuilderHeader";
 import { ImageIcon, Upload, X, Type, Trash2, ChevronUp, ChevronDown, Lock, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { exportHTMLZip, exportReactZip, exportNextJsZip } from "../../lib/exporter";
-import { API_BASE_URL } from "../../config";
+import { API_BASE_URL, validateApiUrl } from "../../config";
 import toast from "react-hot-toast";
 
 // DnD Kit Imports
@@ -630,6 +630,11 @@ function BuilderContent() {
 
     const token = localStorage.getItem("token");
     if (!token) return;
+
+    if (!validateApiUrl()) {
+      toast.error("API configuration error. Please check your environment variables.");
+      return;
+    }
 
     setIsSaving(true);
 

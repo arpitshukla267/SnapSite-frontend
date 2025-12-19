@@ -2,7 +2,7 @@
 import { Mail, Lock } from "lucide-react";
 import { useState } from "react";
 import Loader from "../../components/ui/Loader";
-import { API_BASE_URL } from "../../config";
+import { API_BASE_URL, validateApiUrl } from "../../config";
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +18,12 @@ export default function Login() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email");
     const password = formData.get("password");
+
+    if (!validateApiUrl()) {
+      setError("API configuration error. Please check your environment variables.");
+      setIsLoading(false);
+      return;
+    }
 
     // Call backend API
     try {
