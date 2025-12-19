@@ -104,7 +104,7 @@ export default function BuilderHeader({
             shadow-md shadow-blue-600/30 transition"
         >
           <BiSave className="w-4 h-4" />
-          <span>Save</span>
+          <span>Create Your Own Template</span>
         </button>
       </div>
     </div>
