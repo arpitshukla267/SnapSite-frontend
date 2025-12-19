@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Heart, Save, Download, Trash2, Eye, Edit, Calendar, FileText, ExternalLink, Lock, Globe, BarChart3, TrendingUp, Users } from "lucide-react";
-import { API_BASE_URL } from "../../config";
+import { API_BASE_URL, validateApiUrl } from "../../config";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
