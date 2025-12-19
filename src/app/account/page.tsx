@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Heart, Save, Download, Trash2, Eye, Edit, Calendar, FileText, ExternalLink, Lock, Globe, BarChart3, TrendingUp, Users } from "lucide-react";
+import { Heart, Save, Download, Trash2, Eye, Edit, Calendar, FileText, ExternalLink, Lock, Globe, BarChart3, TrendingUp, Users, Upload, X, ImageIcon } from "lucide-react";
 import { API_BASE_URL, validateApiUrl } from "../../config";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -18,6 +18,25 @@ export default function AccountPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [newVisibility, setNewVisibility] = useState<boolean>(false);
   const [updatingVisibility, setUpdatingVisibility] = useState(false);
+  
+  // Thumbnail edit modal state
+  const [showThumbnailModal, setShowThumbnailModal] = useState(false);
+  const [editingThumbnailTemplate, setEditingThumbnailTemplate] = useState<any>(null);
+  const [thumbnailValue, setThumbnailValue] = useState<string>("");
+  const [thumbnailInputMode, setThumbnailInputMode] = useState<"upload" | "link">("upload");
+  const [thumbnailLink, setThumbnailLink] = useState("");
+  const [updatingThumbnail, setUpdatingThumbnail] = useState(false);
+  
+  // Delete confirmation modal state
+  const [showDeleteSavedModal, setShowDeleteSavedModal] = useState(false);
+  const [deleteSavedId, setDeleteSavedId] = useState<string | null>(null);
+  const [deleteSavedName, setDeleteSavedName] = useState<string>("");
+  const [deletingSaved, setDeletingSaved] = useState(false);
+  
+  const [showDeleteWishlistModal, setShowDeleteWishlistModal] = useState(false);
+  const [deleteWishlistSlug, setDeleteWishlistSlug] = useState<string | null>(null);
+  const [deleteWishlistName, setDeleteWishlistName] = useState<string>("");
+  const [deletingWishlist, setDeletingWishlist] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -73,39 +92,79 @@ export default function AccountPage() {
     }
   };
 
-  const handleRemoveWishlist = async (templateSlug: string) => {
+  const handleRemoveWishlistClick = (templateSlug: string, templateName: string) => {
+    setDeleteWishlistSlug(templateSlug);
+    setDeleteWishlistName(templateName);
+    setShowDeleteWishlistModal(true);
+  };
+
+  const confirmDeleteWishlist = async () => {
+    if (!deleteWishlistSlug) return;
+    
     const token = localStorage.getItem("token");
     if (!token) return;
 
+    setDeletingWishlist(true);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/templates/wishlist/${templateSlug}`, {
+      const res = await fetch(`${API_BASE_URL}/api/templates/wishlist/${deleteWishlistSlug}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
-        setWishlist(wishlist.filter((item) => item.templateSlug !== templateSlug));
+        setWishlist(wishlist.filter((item) => item.templateSlug !== deleteWishlistSlug));
+        setShowDeleteWishlistModal(false);
+        setDeleteWishlistSlug(null);
+        setDeleteWishlistName("");
+        toast.success("Removed from wishlist");
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Failed to remove from wishlist");
       }
     } catch (err) {
       console.error("Error removing from wishlist:", err);
+      toast.error("Error removing from wishlist. Please try again.");
+    } finally {
+      setDeletingWishlist(false);
     }
   };
 
-  const handleDeleteSaved = async (id: string) => {
+  const handleDeleteSavedClick = (id: string, name: string) => {
+    setDeleteSavedId(id);
+    setDeleteSavedName(name);
+    setShowDeleteSavedModal(true);
+  };
+
+  const confirmDeleteSaved = async () => {
+    if (!deleteSavedId) return;
+    
     const token = localStorage.getItem("token");
     if (!token) return;
 
+    setDeletingSaved(true);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/templates/saved/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/templates/saved/${deleteSavedId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.ok) {
-        setSavedTemplates(savedTemplates.filter((t) => t._id !== id));
+        setSavedTemplates(savedTemplates.filter((t) => t._id !== deleteSavedId));
+        setShowDeleteSavedModal(false);
+        setDeleteSavedId(null);
+        setDeleteSavedName("");
+        toast.success("Template deleted successfully");
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Failed to delete template");
       }
     } catch (err) {
       console.error("Error deleting saved template:", err);
+      toast.error("Error deleting template. Please try again.");
+    } finally {
+      setDeletingSaved(false);
     }
   };
 
@@ -124,6 +183,64 @@ export default function AccountPage() {
       }
     } catch (err) {
       console.error("Error deleting exported template:", err);
+    }
+  };
+
+  const handleThumbnailEdit = (template: any) => {
+    setEditingThumbnailTemplate(template);
+    setThumbnailValue(template.thumbnail || "");
+    setThumbnailLink(template.thumbnail && !template.thumbnail.startsWith("data:") ? template.thumbnail : "");
+    setThumbnailInputMode(template.thumbnail && template.thumbnail.startsWith("data:") ? "upload" : "link");
+    setShowThumbnailModal(true);
+  };
+
+  const handleThumbnailUpdate = async () => {
+    if (!editingThumbnailTemplate) return;
+    if (!localStorage.getItem("token")) return;
+    if (!validateApiUrl()) {
+      toast.error("API configuration error. Please check your environment variables.");
+      return;
+    }
+
+    setUpdatingThumbnail(true);
+    const token = localStorage.getItem("token");
+
+    try {
+      const thumbnailToSend = thumbnailInputMode === "link" && thumbnailLink.trim() 
+        ? thumbnailLink.trim() 
+        : thumbnailValue;
+
+      const res = await fetch(`${API_BASE_URL}/api/templates/saved/${editingThumbnailTemplate._id}/thumbnail`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ thumbnail: thumbnailToSend || "" }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Update local state
+        setSavedTemplates((prev) =>
+          prev.map((t) =>
+            t._id === editingThumbnailTemplate._id ? data.template : t
+          )
+        );
+        setShowThumbnailModal(false);
+        setEditingThumbnailTemplate(null);
+        setThumbnailValue("");
+        setThumbnailLink("");
+        toast.success("Thumbnail updated successfully!");
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Failed to update thumbnail");
+      }
+    } catch (err) {
+      console.error("Error updating thumbnail:", err);
+      toast.error("Error updating thumbnail. Please check your connection.");
+    } finally {
+      setUpdatingThumbnail(false);
     }
   };
 
@@ -371,8 +488,8 @@ export default function AccountPage() {
                             Use Template
                           </button>
                           <button
-                            onClick={() => handleRemoveWishlist(item.templateSlug)}
-                            className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg transition-colors"
+                            onClick={() => handleRemoveWishlistClick(item.templateSlug, item.templateName)}
+                            className="px-4 py-2 bg-white/5 hover:bg-red-500/20 text-white rounded-lg transition-colors"
                           >
                             <Trash2 size={18} />
                           </button>
@@ -410,13 +527,30 @@ export default function AccountPage() {
                       key={template._id}
                       className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950 shadow-xl border border-white/10 hover:border-purple-500/50 transition-all"
                     >
-                      {template.thumbnail && (
-                        <img
-                          src={template.thumbnail}
-                          alt={template.name}
-                          className="w-full h-48 object-cover"
-                        />
-                      )}
+                      <div className="relative group">
+                        {template.thumbnail ? (
+                          <img
+                            src={template.thumbnail}
+                            alt={template.name}
+                            className="w-full h-48 object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23333' width='400' height='200'/%3E%3Ctext fill='%23999' font-family='sans-serif' font-size='18' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-48 bg-white/5 flex items-center justify-center">
+                            <ImageIcon className="text-gray-500" size={32} />
+                          </div>
+                        )}
+                        {/* Edit Thumbnail Button */}
+                        <button
+                          onClick={() => handleThumbnailEdit(template)}
+                          className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                          title="Edit thumbnail"
+                        >
+                          <Edit size={16} />
+                        </button>
+                      </div>
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-2">
                           <h3 className="text-xl font-bold text-white flex-1">{template.name}</h3>
@@ -469,7 +603,7 @@ export default function AccountPage() {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDeleteSaved(template._id)}
+                            onClick={() => handleDeleteSavedClick(template._id, template.name)}
                             className="px-4 py-2 bg-white/5 hover:bg-red-500/20 text-white rounded-lg transition-colors"
                           >
                             <Trash2 size={18} />
@@ -607,6 +741,340 @@ export default function AccountPage() {
                   }
                 }}
                 disabled={updatingVisibility}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold transition-all border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Thumbnail Edit Modal */}
+      {showThumbnailModal && editingThumbnailTemplate && (
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-xl flex justify-center items-center z-[10001] p-4 animate-fadeIn"
+          onClick={() => {
+            if (!updatingThumbnail) {
+              setShowThumbnailModal(false);
+              setEditingThumbnailTemplate(null);
+            }
+          }}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-white mb-2">Edit Thumbnail</h3>
+              <p className="text-gray-400 text-sm">Update the thumbnail image for {editingThumbnailTemplate.name}</p>
+            </div>
+
+            {/* Mode Toggle */}
+            <div className="flex gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setThumbnailInputMode("upload");
+                  setThumbnailLink("");
+                }}
+                disabled={updatingThumbnail}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  thumbnailInputMode === "upload"
+                    ? "bg-purple-500/20 border-2 border-purple-500/50 text-purple-400"
+                    : "bg-white/5 border-2 border-white/10 text-gray-400 hover:border-white/20"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                Upload
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setThumbnailInputMode("link");
+                  setThumbnailValue("");
+                }}
+                disabled={updatingThumbnail}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  thumbnailInputMode === "link"
+                    ? "bg-purple-500/20 border-2 border-purple-500/50 text-purple-400"
+                    : "bg-white/5 border-2 border-white/10 text-gray-400 hover:border-white/20"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                Link
+              </button>
+            </div>
+
+            {/* Upload Mode */}
+            {thumbnailInputMode === "upload" && (
+              <div>
+                {/* Preview */}
+                {thumbnailValue && (
+                  <div className="relative mb-3 group">
+                    <img
+                      src={thumbnailValue}
+                      alt="Thumbnail preview"
+                      className="w-full h-32 object-cover rounded-lg border border-white/10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setThumbnailValue("");
+                      }}
+                      disabled={updatingThumbnail}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Drag & Drop Area */}
+                <label
+                  className={`w-full border-2 border-dashed rounded-lg p-6 cursor-pointer transition-all outline-none focus:outline-none box-border overflow-hidden ${
+                    thumbnailValue
+                      ? "border-white/10 bg-white/5"
+                      : "border-white/20 hover:border-purple-500/50 hover:bg-white/5"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (!updatingThumbnail) {
+                      e.currentTarget.classList.add("border-purple-500", "bg-white/5");
+                    }
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("border-purple-500", "bg-white/5");
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("border-purple-500", "bg-white/5");
+                    if (updatingThumbnail) return;
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) {
+                      if (file.size > 5 * 1024 * 1024) {
+                        toast.error("File size must be less than 5MB");
+                        return;
+                      }
+                      if (!file.type.startsWith("image/")) {
+                        toast.error("Only image files are allowed");
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setThumbnailValue(reader.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden outline-none focus:outline-none"
+                    disabled={updatingThumbnail}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast.error("File size must be less than 5MB");
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setThumbnailValue(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center">
+                      <Upload size={20} className="text-gray-400" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-300">
+                      {thumbnailValue ? "Change thumbnail" : "Drag & drop or click to upload"}
+                    </span>
+                    <span className="text-xs text-gray-500">PNG, JPG up to 5MB</span>
+                  </div>
+                </label>
+              </div>
+            )}
+
+            {/* Link Mode */}
+            {thumbnailInputMode === "link" && (
+              <div>
+                {/* Preview */}
+                {thumbnailLink && (
+                  <div className="relative mb-3 group">
+                    <img
+                      src={thumbnailLink}
+                      alt="Thumbnail preview"
+                      className="w-full h-32 object-cover rounded-lg border border-white/10"
+                      onError={() => {
+                        toast.error("Invalid image URL");
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setThumbnailLink("");
+                      }}
+                      disabled={updatingThumbnail}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {/* URL Input */}
+                <input
+                  type="url"
+                  value={thumbnailLink}
+                  onChange={(e) => setThumbnailLink(e.target.value)}
+                  placeholder="Paste image URL here..."
+                  disabled={updatingThumbnail}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={handleThumbnailUpdate}
+                disabled={updatingThumbnail || (thumbnailInputMode === "link" && !thumbnailLink.trim() && !thumbnailValue) || (thumbnailInputMode === "upload" && !thumbnailValue)}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-lg font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {updatingThumbnail ? "Updating..." : "Update"}
+              </button>
+              <button
+                onClick={() => {
+                  if (!updatingThumbnail) {
+                    setShowThumbnailModal(false);
+                    setEditingThumbnailTemplate(null);
+                    setThumbnailValue("");
+                    setThumbnailLink("");
+                  }
+                }}
+                disabled={updatingThumbnail}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold transition-all border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Saved Template Confirmation Modal */}
+      {showDeleteSavedModal && (
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-xl flex justify-center items-center z-[10001] p-4 animate-fadeIn"
+          onClick={() => {
+            if (!deletingSaved) {
+              setShowDeleteSavedModal(false);
+              setDeleteSavedId(null);
+              setDeleteSavedName("");
+            }
+          }}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6">
+              <div className="flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full mb-4 mx-auto">
+                <Trash2 className="text-red-400" size={32} />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2 text-center">
+                Delete Template?
+              </h3>
+              <p className="text-gray-400 text-sm text-center">
+                Are you sure you want to delete "{deleteSavedName}"? This action cannot be undone.
+              </p>
+            </div>
+            
+            <div className="bg-white/5 rounded-lg p-4 mb-6 border border-white/10">
+              <div className="text-sm text-gray-300 mb-1">Template Name</div>
+              <div className="text-lg font-semibold text-white">{deleteSavedName}</div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={confirmDeleteSaved}
+                disabled={deletingSaved}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {deletingSaved ? "Deleting..." : "Delete"}
+              </button>
+              <button
+                onClick={() => {
+                  if (!deletingSaved) {
+                    setShowDeleteSavedModal(false);
+                    setDeleteSavedId(null);
+                    setDeleteSavedName("");
+                  }
+                }}
+                disabled={deletingSaved}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold transition-all border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Wishlist Item Confirmation Modal */}
+      {showDeleteWishlistModal && (
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-xl flex justify-center items-center z-[10001] p-4 animate-fadeIn"
+          onClick={() => {
+            if (!deletingWishlist) {
+              setShowDeleteWishlistModal(false);
+              setDeleteWishlistSlug(null);
+              setDeleteWishlistName("");
+            }
+          }}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6">
+              <div className="flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full mb-4 mx-auto">
+                <Trash2 className="text-red-400" size={32} />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2 text-center">
+                Remove from Wishlist?
+              </h3>
+              <p className="text-gray-400 text-sm text-center">
+                Are you sure you want to remove "{deleteWishlistName}" from your wishlist? You can add it back anytime.
+              </p>
+            </div>
+            
+            <div className="bg-white/5 rounded-lg p-4 mb-6 border border-white/10">
+              <div className="text-sm text-gray-300 mb-1">Template Name</div>
+              <div className="text-lg font-semibold text-white">{deleteWishlistName}</div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={confirmDeleteWishlist}
+                disabled={deletingWishlist}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {deletingWishlist ? "Removing..." : "Remove"}
+              </button>
+              <button
+                onClick={() => {
+                  if (!deletingWishlist) {
+                    setShowDeleteWishlistModal(false);
+                    setDeleteWishlistSlug(null);
+                    setDeleteWishlistName("");
+                  }
+                }}
+                disabled={deletingWishlist}
                 className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold transition-all border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel

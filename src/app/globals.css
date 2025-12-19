@@ -383,3 +383,38 @@ body {
 .dropdown-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.7);
 }
+
+/* ===== UPLOAD AREA BORDER FIX ===== */
+label[class*="border-dashed"] {
+  box-sizing: border-box !important;
+  position: relative;
+  display: block;
+}
+
+label[class*="border-dashed"]:focus,
+label[class*="border-dashed"]:focus-within,
+label[class*="border-dashed"]:active {
+  outline: none !important;
+  box-shadow: none !important;
+  border-style: dashed !important;
+}
+
+label[class*="border-dashed"] input[type="file"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ===== TOAST NOTIFICATIONS Z-INDEX FIX ===== */
+/* Ensure toasts appear above builder header */
+[data-sonner-toaster] {
+  z-index: 10001 !important;
+}
+
+/* For react-hot-toast */
+div[class*="react-hot-toast"] {
+  z-index: 10001 !important;
+}

@@ -63,6 +63,9 @@ function BuilderContent() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveTemplateName, setSaveTemplateName] = useState("");
   const [saveTemplateVisibility, setSaveTemplateVisibility] = useState(false); // false = private, true = public
+  const [saveTemplateThumbnail, setSaveTemplateThumbnail] = useState<string>(""); // Thumbnail URL or base64
+  const [thumbnailInputMode, setThumbnailInputMode] = useState<"upload" | "link">("upload");
+  const [thumbnailLink, setThumbnailLink] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   // Responsive State
@@ -602,7 +605,7 @@ function BuilderContent() {
       return;
     }
 
-    // Load existing name and visibility if updating
+    // Load existing name, visibility, and thumbnail if updating
     if (savedTemplateId) {
       const savedTemplateData = localStorage.getItem("savedTemplate");
       if (savedTemplateData) {
@@ -610,6 +613,14 @@ function BuilderContent() {
           const template = JSON.parse(savedTemplateData);
           setSaveTemplateName(template.name || "");
           setSaveTemplateVisibility(template.isPublic || false);
+          setSaveTemplateThumbnail(template.thumbnail || "");
+          if (template.thumbnail && !template.thumbnail.startsWith("data:")) {
+            setThumbnailLink(template.thumbnail);
+            setThumbnailInputMode("link");
+          } else {
+            setThumbnailLink("");
+            setThumbnailInputMode("upload");
+          }
         } catch (err) {
           console.error("Error parsing saved template:", err);
         }
@@ -617,6 +628,9 @@ function BuilderContent() {
     } else {
       setSaveTemplateName("");
       setSaveTemplateVisibility(false); // Default to private for new templates
+      setSaveTemplateThumbnail("");
+      setThumbnailLink("");
+      setThumbnailInputMode("upload");
     }
 
     setShowSaveModal(true);
@@ -664,6 +678,11 @@ function BuilderContent() {
         ? `${API_BASE_URL}/api/templates/saved/${savedTemplateId}`
         : `${API_BASE_URL}/api/templates/saved`;
       
+      // Prepare form data for thumbnail upload (if file) or JSON for URL/base64
+      const thumbnailValue = thumbnailInputMode === "link" && thumbnailLink.trim() 
+        ? thumbnailLink.trim() 
+        : saveTemplateThumbnail;
+
       const res = await fetch(url, {
         method: (savedTemplateId && isOwner) ? "PUT" : "POST",
         headers: {
@@ -674,7 +693,7 @@ function BuilderContent() {
           name: saveTemplateName.trim(),
           originalTemplateSlug: templateSlug || (savedTemplateId ? `saved-${savedTemplateId}` : null),
           layout: layout,
-          thumbnail: null, // Could generate thumbnail later
+          thumbnail: thumbnailValue || "",
           isPublic: saveTemplateVisibility, // Use visibility from modal
         }),
       });
@@ -684,6 +703,8 @@ function BuilderContent() {
         setShowSaveModal(false);
         setSaveTemplateName("");
         setSaveTemplateVisibility(false);
+        setSaveTemplateThumbnail("");
+        setThumbnailLink("");
         
         if (shouldCreateNew) {
           toast.success("Template saved as a new copy (original template is public and cannot be modified)", {
@@ -1349,6 +1370,182 @@ function BuilderContent() {
               />
             </div>
 
+            {/* Thumbnail Upload */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-300 mb-3">
+                Thumbnail Image
+              </label>
+              
+              {/* Mode Toggle */}
+              <div className="flex gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setThumbnailInputMode("upload");
+                    setThumbnailLink("");
+                  }}
+                  disabled={isSaving}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    thumbnailInputMode === "upload"
+                      ? "bg-purple-500/20 border-2 border-purple-500/50 text-purple-400"
+                      : "bg-white/5 border-2 border-white/10 text-gray-400 hover:border-white/20"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  Upload
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setThumbnailInputMode("link");
+                    setSaveTemplateThumbnail("");
+                  }}
+                  disabled={isSaving}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    thumbnailInputMode === "link"
+                      ? "bg-purple-500/20 border-2 border-purple-500/50 text-purple-400"
+                      : "bg-white/5 border-2 border-white/10 text-gray-400 hover:border-white/20"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  Link
+                </button>
+              </div>
+
+              {/* Upload Mode */}
+              {thumbnailInputMode === "upload" && (
+                <div>
+                  {/* Preview */}
+                  {saveTemplateThumbnail && (
+                    <div className="relative mb-3 group">
+                      <img
+                        src={saveTemplateThumbnail}
+                        alt="Thumbnail preview"
+                        className="w-full h-32 object-cover rounded-lg border border-white/10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSaveTemplateThumbnail("");
+                        }}
+                        disabled={isSaving}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Drag & Drop Area */}
+                  <label
+                    className={`w-full border-2 border-dashed rounded-lg p-6 cursor-pointer transition-all outline-none focus:outline-none box-border overflow-hidden ${
+                      saveTemplateThumbnail
+                        ? "border-white/10 bg-white/5"
+                        : "border-white/20 hover:border-purple-500/50 hover:bg-white/5"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (!isSaving) {
+                        e.currentTarget.classList.add("border-purple-500", "bg-white/5");
+                      }
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove("border-purple-500", "bg-white/5");
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove("border-purple-500", "bg-white/5");
+                      if (isSaving) return;
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast.error("File size must be less than 5MB");
+                          return;
+                        }
+                        if (!file.type.startsWith("image/")) {
+                          toast.error("Only image files are allowed");
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setSaveTemplateThumbnail(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden outline-none focus:outline-none"
+                      disabled={isSaving}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error("File size must be less than 5MB");
+                            return;
+                          }
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setSaveTemplateThumbnail(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    <div className="flex flex-col items-center gap-2 text-center">
+                      <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center">
+                        <Upload size={20} className="text-gray-400" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-300">
+                        {saveTemplateThumbnail ? "Change thumbnail" : "Drag & drop or click to upload"}
+                      </span>
+                      <span className="text-xs text-gray-500">PNG, JPG up to 5MB</span>
+                    </div>
+                  </label>
+                </div>
+              )}
+
+              {/* Link Mode */}
+              {thumbnailInputMode === "link" && (
+                <div>
+                  {/* Preview */}
+                  {thumbnailLink && (
+                    <div className="relative mb-3 group">
+                      <img
+                        src={thumbnailLink}
+                        alt="Thumbnail preview"
+                        className="w-full h-32 object-cover rounded-lg border border-white/10"
+                        onError={() => {
+                          toast.error("Invalid image URL");
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setThumbnailLink("");
+                        }}
+                        disabled={isSaving}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* URL Input */}
+                  <input
+                    type="url"
+                    value={thumbnailLink}
+                    onChange={(e) => setThumbnailLink(e.target.value)}
+                    placeholder="Paste image URL here..."
+                    disabled={isSaving}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                  />
+                </div>
+              )}
+            </div>
+
             {/* Visibility Toggle */}
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-300 mb-3">
@@ -1404,6 +1601,8 @@ function BuilderContent() {
                     setShowSaveModal(false);
                     setSaveTemplateName("");
                     setSaveTemplateVisibility(false);
+                    setSaveTemplateThumbnail("");
+                    setThumbnailLink("");
                   }
                 }}
                 disabled={isSaving}
