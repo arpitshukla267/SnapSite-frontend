@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react";
-import { Search, Grid, List, X, Eye, Sparkles, ArrowRight, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Grid, List, X, Eye, Sparkles, ArrowRight, Check, Heart } from "lucide-react";
 import { SectionRegistry } from "../../lib/sectionRegistry";
+import { API_BASE_URL } from "../../config";
 
 // Mock data for demonstration
 const mockTemplates = [
@@ -109,11 +110,125 @@ export default function TemplatesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [wishlistStatus, setWishlistStatus] = useState<Record<string, boolean>>({});
+  const [isLoadingWishlist, setIsLoadingWishlist] = useState(false);
+  const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
+  const [loadingSaved, setLoadingSaved] = useState(false);
 
-  const templates = mockTemplates;
+  // Combine mock templates with saved templates
+  const allTemplates = [...mockTemplates, ...savedTemplates];
+  const templates = allTemplates;
+
+  // Fetch saved templates
+  useEffect(() => {
+    const fetchSavedTemplates = async () => {
+      setLoadingSaved(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/templates/saved/all`);
+        if (res.ok) {
+          const data = await res.json();
+          // Transform saved templates to match template format
+          const transformed = (data.templates || []).map((t: any) => ({
+            slug: `saved-${t._id}`,
+            name: t.name,
+            thumbnail: t.thumbnail || "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop",
+            category: "saved",
+            sections: t.layout || [],
+            features: ["Custom Template", "User Created"],
+            creator: t.user?.name || "Unknown",
+            creatorUsername: t.user?.username || "",
+            isSavedTemplate: true,
+            savedTemplateId: t._id,
+          }));
+          setSavedTemplates(transformed);
+        }
+      } catch (err) {
+        console.error("Error fetching saved templates:", err);
+      } finally {
+        setLoadingSaved(false);
+      }
+    };
+
+    fetchSavedTemplates();
+  }, []);
+
+  // Check wishlist status for all templates
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const checkWishlistStatuses = async () => {
+      try {
+        const statuses: Record<string, boolean> = {};
+        for (const template of templates) {
+          if (template.isSavedTemplate) continue; // Skip saved templates for wishlist
+          const res = await fetch(`${API_BASE_URL}/api/templates/wishlist/check/${template.slug}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            statuses[template.slug] = data.inWishlist;
+          }
+        }
+        setWishlistStatus(statuses);
+      } catch (err) {
+        console.error("Error checking wishlist status:", err);
+      }
+    };
+
+    checkWishlistStatuses();
+  }, [templates]);
+
+  const handleWishlistToggle = async (e: React.MouseEvent, template: any) => {
+    e.stopPropagation();
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    setIsLoadingWishlist(true);
+    const isInWishlist = wishlistStatus[template.slug];
+
+    try {
+      if (isInWishlist) {
+        // Remove from wishlist
+        const res = await fetch(`${API_BASE_URL}/api/templates/wishlist/${template.slug}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          setWishlistStatus({ ...wishlistStatus, [template.slug]: false });
+        }
+      } else {
+        // Add to wishlist
+        const res = await fetch(`${API_BASE_URL}/api/templates/wishlist`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            templateSlug: template.slug,
+            templateName: template.name,
+            templateThumbnail: template.thumbnail,
+            templateCategory: template.category,
+          }),
+        });
+        if (res.ok) {
+          setWishlistStatus({ ...wishlistStatus, [template.slug]: true });
+        }
+      }
+    } catch (err) {
+      console.error("Error toggling wishlist:", err);
+    } finally {
+      setIsLoadingWishlist(false);
+    }
+  };
 
   const filteredTemplates = templates.filter((t) => {
-    const matchesCategory = filter === "all" || t.category === filter;
+    const matchesCategory = filter === "all" || t.category === filter || (filter === "all" && t.isSavedTemplate);
     const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -127,7 +242,12 @@ export default function TemplatesPage() {
     }
 
     if (selectedTemplate) {
-      window.location.href = `/builder?template=${selectedTemplate.slug}`;
+      if (selectedTemplate.isSavedTemplate) {
+        // Load saved template
+        window.location.href = `/builder?saved=${selectedTemplate.savedTemplateId}`;
+      } else {
+        window.location.href = `/builder?template=${selectedTemplate.slug}`;
+      }
     }
   };
 
@@ -183,7 +303,7 @@ export default function TemplatesPage() {
           {/* Filter and View Controls */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-wrap justify-center gap-2">
-              {["all", "business", "agency", "portfolio"].map((cat) => (
+              {["all", "business", "agency", "portfolio", "saved"].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setFilter(cat)}
@@ -247,9 +367,38 @@ export default function TemplatesPage() {
                 {/* Category Badge */}
                 <div className="absolute top-4 left-4 z-10">
                   <span className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-md border border-purple-500/30 text-purple-300 text-xs font-semibold">
-                    {t.category}
+                    {t.isSavedTemplate ? "Saved" : t.category}
                   </span>
                 </div>
+                
+                {/* Creator Badge for Saved Templates */}
+                {t.isSavedTemplate && t.creator && (
+                  <div className="absolute top-4 right-16 z-10">
+                    <span className="px-3 py-1 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-md border border-green-500/30 text-green-300 text-xs font-semibold">
+                      by {t.creator}
+                    </span>
+                  </div>
+                )}
+
+                {/* Wishlist Heart Icon - Only show for non-saved templates */}
+                {!t.isSavedTemplate && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <button
+                      onClick={(e) => handleWishlistToggle(e, t)}
+                      disabled={isLoadingWishlist}
+                      className={`p-2 rounded-full backdrop-blur-md border transition-all ${
+                        wishlistStatus[t.slug]
+                          ? "bg-red-500/20 border-red-500/50 text-red-400"
+                          : "bg-white/10 border-white/20 text-white/70 hover:text-white"
+                      } hover:scale-110 active:scale-95`}
+                    >
+                      <Heart
+                        size={18}
+                        className={wishlistStatus[t.slug] ? "fill-current" : ""}
+                      />
+                    </button>
+                  </div>
+                )}
 
                 {/* Thumbnail with Overlay */}
                 <div className="relative overflow-hidden">
@@ -423,8 +572,14 @@ export default function TemplatesPage() {
                     </div>
                     <div className="flex items-center justify-between py-2 border-b border-white/5">
                       <span className="text-gray-400 text-sm">Category</span>
-                      <span className="text-white font-semibold capitalize">{selectedTemplate.category}</span>
+                      <span className="text-white font-semibold capitalize">{selectedTemplate.isSavedTemplate ? "Saved" : selectedTemplate.category}</span>
                     </div>
+                    {selectedTemplate.isSavedTemplate && selectedTemplate.creator && (
+                      <div className="flex items-center justify-between py-2 border-b border-white/5">
+                        <span className="text-gray-400 text-sm">Creator</span>
+                        <span className="text-white font-semibold">{selectedTemplate.creator}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

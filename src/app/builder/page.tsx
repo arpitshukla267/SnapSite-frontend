@@ -8,7 +8,8 @@ import Sidebar from "../../components/builder/Sidebar";
 import BuilderHeader from "../../components/builder/BuilderHeader";
 import { ImageIcon, Upload, X, Type, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { exportHTMLZip } from "../../lib/exporter";
+import { exportHTMLZip, exportReactZip, exportNextJsZip } from "../../lib/exporter";
+import { API_BASE_URL } from "../../config";
 
 // DnD Kit Imports
 import {
@@ -33,6 +34,7 @@ import { CSS } from "@dnd-kit/utilities";
 function BuilderContent() {
   const params = useSearchParams();
   const templateSlug = params.get("template");
+  const savedTemplateId = params.get("saved");
   const [mounted, setMounted] = useState(false);
 
   // Layout state
@@ -56,12 +58,38 @@ function BuilderContent() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
 
+  // Save modal state
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveTemplateName, setSaveTemplateName] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
   // Responsive State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
 
-  // Load Template
+  // Load Template or Saved Template
   useEffect(() => {
+    // Check if loading a saved template
+    if (savedTemplateId) {
+      const savedTemplateData = localStorage.getItem("savedTemplate");
+      if (savedTemplateData) {
+        try {
+          const template = JSON.parse(savedTemplateData);
+          if (template.layout && Array.isArray(template.layout)) {
+            const sectionsWithIds = template.layout.map((sec: any, index: number) => ({
+              ...sec,
+              id: sec.id ?? `block-${index}-${Date.now()}`,
+            }));
+            setLayout(sectionsWithIds);
+          }
+        } catch (err) {
+          console.error("Error loading saved template:", err);
+        }
+      }
+      return;
+    }
+
+    // Load regular template
     if (!templateSlug) return;
     const template = getTemplateBySlug(templateSlug);
 
@@ -73,7 +101,7 @@ function BuilderContent() {
 
       setLayout(sectionsWithIds);
     }
-  }, [templateSlug]);
+  }, [templateSlug, savedTemplateId]);
 
   // Drag sensor
   const sensors = useSensors(
@@ -510,9 +538,135 @@ function BuilderContent() {
     setIsSidebarOpen(false);
   };
 
-  const handleExport = async () => {
+  const handleSave = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please log in to save templates");
+      return;
+    }
+
+    if (layout.length === 0) {
+      alert("Cannot save empty template");
+      return;
+    }
+
+    // Load existing name if updating
+    if (savedTemplateId) {
+      const savedTemplateData = localStorage.getItem("savedTemplate");
+      if (savedTemplateData) {
+        try {
+          const template = JSON.parse(savedTemplateData);
+          setSaveTemplateName(template.name || "");
+        } catch (err) {
+          console.error("Error parsing saved template:", err);
+        }
+      }
+    } else {
+      setSaveTemplateName("");
+    }
+
+    setShowSaveModal(true);
+  };
+
+  const handleSaveSubmit = async () => {
+    if (!saveTemplateName.trim()) {
+      alert("Please enter a template name");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    setIsSaving(true);
+
+    try {
+      const url = savedTemplateId
+        ? `${API_BASE_URL}/api/templates/saved/${savedTemplateId}`
+        : `${API_BASE_URL}/api/templates/saved`;
+      
+      const res = await fetch(url, {
+        method: savedTemplateId ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: saveTemplateName.trim(),
+          originalTemplateSlug: templateSlug || null,
+          layout: layout,
+          thumbnail: null, // Could generate thumbnail later
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setShowSaveModal(false);
+        setSaveTemplateName("");
+        
+        // Update URL if it's a new save
+        if (!savedTemplateId && data.template?._id) {
+          window.history.replaceState({}, "", `/builder?saved=${data.template._id}`);
+          // Update localStorage
+          localStorage.setItem("savedTemplate", JSON.stringify(data.template));
+        } else if (savedTemplateId && data.template) {
+          // Update localStorage for existing template
+          localStorage.setItem("savedTemplate", JSON.stringify(data.template));
+        }
+      } else {
+        const error = await res.json();
+        alert(error.message || "Failed to save template");
+      }
+    } catch (err) {
+      console.error("Error saving template:", err);
+      alert("Failed to save template. Please check your connection.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleExport = async (exportType: "html" | "react" | "nextjs" = "html") => {
     if (layout.length === 0) return;
-    await exportHTMLZip(layout);
+
+    try {
+      // Perform export
+      if (exportType === "html") {
+        await exportHTMLZip(layout);
+      } else if (exportType === "react") {
+        await exportReactZip(layout);
+      } else if (exportType === "nextjs") {
+        await exportNextJsZip(layout);
+      }
+
+      // Record export in database
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          // Estimate file size (rough approximation)
+          const estimatedSize = JSON.stringify(layout).length;
+
+          await fetch(`${API_BASE_URL}/api/templates/exported`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              name: `${templateSlug || "Untitled"} - ${exportType.toUpperCase()}`,
+              exportType: exportType,
+              status: "completed",
+              fileSize: estimatedSize,
+              layout: layout, // Optional: store layout for reference
+            }),
+          });
+        } catch (err) {
+          console.error("Error recording export:", err);
+          // Don't show error to user, export was successful
+        }
+      }
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert("Export failed. Please try again.");
+    }
   };
 
   const handleMoveSection = (index: number, direction: 'up' | 'down') => {
@@ -559,7 +713,8 @@ function BuilderContent() {
           templateName={templateSlug || "Site"}
           viewMode={viewMode}
           setViewMode={setViewMode}
-          onExport={handleExport}
+          onSave={handleSave}
+          onExport={() => handleExport("html")}
         />
 
         {/* BODY */}
@@ -582,7 +737,7 @@ function BuilderContent() {
                  <div className="w-12 h-1.5 bg-gray-600 rounded-full cursor-pointer hover:bg-gray-500 transition-colors" />
                </div>
                <div className="flex-1 overflow-hidden">
-                  <Sidebar layout={layout} />
+                  <Sidebar layout={layout} onExport={handleExport} />
                </div>
             </div>
           </div>
@@ -1038,6 +1193,77 @@ function BuilderContent() {
           ) : null}
         </DragOverlay>
       </div>
+
+      {/* Save Modal */}
+      {showSaveModal && (
+        <div
+          className="fixed inset-0 bg-black/90 backdrop-blur-xl flex justify-center items-center z-[10001] p-4 animate-fadeIn"
+          onClick={() => {
+            if (!isSaving) {
+              setShowSaveModal(false);
+              setSaveTemplateName("");
+            }
+          }}
+        >
+          <div
+            className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-8 max-w-md w-full border border-white/10 shadow-2xl animate-scaleIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold text-white mb-2">
+                {savedTemplateId ? "Update Template" : "Save Template"}
+              </h3>
+              <p className="text-gray-400 text-sm">
+                {savedTemplateId 
+                  ? "Update your template name and save changes"
+                  : "Give your template a name to save it"}
+              </p>
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-300 mb-2">
+                Template Name
+              </label>
+              <input
+                type="text"
+                value={saveTemplateName}
+                onChange={(e) => setSaveTemplateName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !isSaving) {
+                    handleSaveSubmit();
+                  }
+                }}
+                placeholder="Enter template name..."
+                disabled={isSaving}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                autoFocus
+              />
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={handleSaveSubmit}
+                disabled={isSaving || !saveTemplateName.trim()}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-lg font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {isSaving ? "Saving..." : "Save"}
+              </button>
+              <button
+                onClick={() => {
+                  if (!isSaving) {
+                    setShowSaveModal(false);
+                    setSaveTemplateName("");
+                  }
+                }}
+                disabled={isSaving}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold transition-all border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DndContext>
   );
 }

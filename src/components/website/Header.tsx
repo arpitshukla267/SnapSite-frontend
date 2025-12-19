@@ -38,7 +38,7 @@ const Header: React.FC = () => {
     { href: "/features", label: "Features" },
     { href: "/templates", label: "Templates" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/dashboard", label: "Dashboard" },
+    { href: "/account", label: "Account" },
   ];
 
   const isActive = (href: string) => currentPath === href;

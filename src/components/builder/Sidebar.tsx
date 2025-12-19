@@ -75,7 +75,7 @@ const Component = SectionRegistry[section.type]?.component;
 }
 
 /* -------------------- SIDEBAR -------------------- */
-export default function Sidebar({ layout }: { layout: any[] }) {
+export default function Sidebar({ layout, onExport }: { layout: any[]; onExport?: (type: "html" | "react" | "nextjs") => void }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
@@ -157,9 +157,12 @@ export default function Sidebar({ layout }: { layout: any[] }) {
                   </button> */}
                   <button
                     onClick={async () => {
-                      console.log("Export HTML clicked", layout);
-                      await exportHTMLZip(layout);
                       setShowExportDropdown(false);
+                      if (onExport) {
+                        onExport("html");
+                      } else {
+                        await exportHTMLZip(layout);
+                      }
                     }}
                     className="w-full text-left px-3 py-2.5 text-sm text-gray-200 hover:bg-orange-500/20 hover:text-white rounded-lg transition-all flex items-center gap-2 group"
                   >
