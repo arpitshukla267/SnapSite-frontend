@@ -228,19 +228,26 @@ const ProfessionalBackground: React.FC = () => {
 
   return (
     <div className="fixed z-0 inset-0 w-full h-full overflow-hidden bg-black">
+      {/* Enhanced gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-950/20 via-transparent to-black/40 pointer-events-none" />
+      
       <canvas 
         ref={canvasRef} 
         className="absolute inset-0 w-full h-full"
         style={{ display: 'block' }}
       />
       
-      {/* Subtle noise texture overlay */}
+      {/* Enhanced noise texture overlay */}
       <div 
-        className="absolute inset-0 opacity-[0.015] pointer-events-none mix-blend-overlay"
+        className="absolute inset-0 opacity-[0.02] pointer-events-none mix-blend-overlay"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
         }}
       />
+
+      {/* Animated gradient orbs for depth */}
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
     </div>
   );
 };

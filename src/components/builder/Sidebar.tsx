@@ -6,6 +6,7 @@ import { SectionsLibrary } from "../../lib/sectionsLibrary";
 import { SectionRegistry } from "../../lib/sectionRegistry";
 import { BiSearch, BiGridAlt, BiCategory, BiChevronDown, BiDownload } from "react-icons/bi";
 import { exportNextJsZip, exportReactZip, exportHTMLZip } from "../../lib/exporter";
+import { motion, AnimatePresence } from "framer-motion";
 
 /* -------------------- DRAGGABLE SECTION ITEM -------------------- */
 function SidebarItem({ section }: { section: any }) {
@@ -79,6 +80,7 @@ export default function Sidebar({ layout, onExport }: { layout: any[]; onExport?
   const [searchTerm, setSearchTerm] = useState("");
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   // Preload JSZip to avoid async delay during export
   useEffect(() => {
@@ -195,49 +197,172 @@ export default function Sidebar({ layout, onExport }: { layout: any[]; onExport?
         </div>
       </div>
 
-      {/* CATEGORY FILTER */}
+      {/* CATEGORY FILTER - Enhanced with Custom Dropdown */}
       <div className="px-6 py-4 border-b border-white/5 bg-black/20">
         <div className="relative group">
-          <select
-            value={activeCategory}
-            onChange={(e) => setActiveCategory(e.target.value)}
-            className="w-full appearance-none py-2.5 pl-4 pr-10
+          {/* Custom Dropdown Trigger */}
+          <button
+            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+            className="w-full flex items-center justify-between py-2.5 pl-4 pr-10
               bg-[#0f172a] text-sm font-semibold text-gray-200
               border border-white/10 rounded-xl
-              focus:outline-none focus:ring-2 focus:ring-indigo-500/30
+              hover:border-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/30
               cursor-pointer transition-all"
           >
-            {categories.map((cat) => (
-              <option key={cat} value={cat} className="bg-[#0b0f19]">
-                {cat}
-              </option>
-            ))}
-          </select>
-          <BiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none group-hover:text-indigo-400 transition-colors" />
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+              {activeCategory}
+            </span>
+            <BiChevronDown 
+              className={`text-gray-500 transition-transform duration-200 ${
+                isCategoryDropdownOpen ? "rotate-180 text-indigo-400" : ""
+              }`}
+            />
+          </button>
+
+          {/* Custom Dropdown Menu with Animations */}
+          <AnimatePresence>
+            {isCategoryDropdownOpen && (
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsCategoryDropdownOpen(false)}
+                />
+                
+                {/* Dropdown List */}
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                  className="absolute top-full left-0 right-0 mt-2 z-50
+                    bg-[#0f172a] border border-white/10 rounded-xl
+                    shadow-2xl overflow-hidden backdrop-blur-xl"
+                >
+                  <div className="max-h-64 overflow-y-auto dropdown-scrollbar">
+                    {categories.map((cat, index) => (
+                      <motion.button
+                        key={cat}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ 
+                          duration: 0.2, 
+                          delay: index * 0.03,
+                          ease: [0.4, 0, 0.2, 1]
+                        }}
+                        onClick={() => {
+                          setActiveCategory(cat);
+                          setIsCategoryDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-sm font-medium
+                          transition-all duration-200 flex items-center gap-3
+                          ${
+                            activeCategory === cat
+                              ? "bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 border-l-2 border-indigo-500"
+                              : "text-gray-300 hover:text-white hover:bg-white/5"
+                          }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full transition-all ${
+                          activeCategory === cat 
+                            ? "bg-indigo-400 scale-125" 
+                            : "bg-gray-600 group-hover:bg-indigo-500/50"
+                        }`} />
+                        <span>{cat}</span>
+                        {activeCategory === cat && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400"
+                          />
+                        )}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
       {/* SECTIONS LIST */}
       <div className="flex-1 overflow-y-auto scroll-minimal p-5">
-        <div className="flex flex-col space-y-5 pb-20">
-          {filteredSections.map((section) => (
-            <SidebarItem key={section.type} section={section} />
-          ))}
+        <AnimatePresence mode="popLayout">
+          <motion.div 
+            className="flex flex-col space-y-5 pb-20"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: {
+                transition: {
+                  staggerChildren: 0.05,
+                },
+              },
+            }}
+          >
+            {filteredSections.map((section, index) => (
+              <motion.div
+                key={section.type}
+                variants={{
+                  hidden: { opacity: 0, y: 20, scale: 0.95, filter: "blur(4px)" },
+                  visible: { 
+                    opacity: 1, 
+                    y: 0, 
+                    scale: 1, 
+                    filter: "blur(0px)",
+                    transition: {
+                      duration: 0.4,
+                      ease: [0.4, 0, 0.2, 1],
+                    }
+                  },
+                }}
+                exit={{ 
+                  opacity: 0, 
+                  y: -20, 
+                  scale: 0.95,
+                  filter: "blur(4px)",
+                  transition: {
+                    duration: 0.2,
+                  }
+                }}
+                layout
+                whileHover={{ scale: 1.02, y: -2 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <SidebarItem section={section} />
+              </motion.div>
+            ))}
 
-          {filteredSections.length === 0 && (
-            <div className="py-20 text-center opacity-50">
-              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 mx-auto">
-                <BiCategory className="w-8 h-8 text-gray-500" />
-              </div>
-              <p className="text-sm font-medium text-gray-400">
-                No components found
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Try a different search term
-              </p>
-            </div>
-          )}
-        </div>
+            {filteredSections.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 0.5, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                className="py-20 text-center"
+              >
+                <motion.div 
+                  className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 mx-auto"
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  <BiCategory className="w-8 h-8 text-gray-500" />
+                </motion.div>
+                <p className="text-sm font-medium text-gray-400">
+                  No components found
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Try a different search term
+                </p>
+              </motion.div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* FOOTER */}

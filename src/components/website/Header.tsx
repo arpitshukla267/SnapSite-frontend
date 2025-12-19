@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Menu, X, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Header: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -38,7 +39,7 @@ const Header: React.FC = () => {
     { href: "/features", label: "Features" },
     { href: "/templates", label: "Templates" },
     { href: "/pricing", label: "Pricing" },
-    { href: "/account", label: "Account" },
+    { href: "/account", label: "Dashboard" },
   ];
 
   const isActive = (href: string) => currentPath === href;
@@ -61,32 +62,49 @@ const Header: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo */}
-            <a
+            <motion.a
               href="/"
               className="flex items-center gap-2 sm:gap-3 group relative z-10"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <div className="relative">
+              <motion.div 
+                className="relative"
+                animate={{ 
+                  rotate: [0, 360],
+                }}
+                transition={{ 
+                  duration: 20, 
+                  repeat: Infinity, 
+                  ease: "linear" 
+                }}
+              >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-                {/* <img
-                  src="/logo.png"
-                  alt="Logo"
-                  className="relative w-9 h-9 sm:w-10 sm:h-10"
-                /> */}
-              </div>
-              <span className="text-base sm:text-xl font-bold text-white hidden sm:block">
+                <div className="relative w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/50">
+                  <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </div>
+              </motion.div>
+              <motion.span 
+                className="text-base sm:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+              >
                 SnapSite
-              </span>
-              <span className="text-base sm:text-xl font-bold text-white sm:hidden">
-                SnapSite
-              </span>
-            </a>
+              </motion.span>
+            </motion.a>
 
             {/* Desktop Nav */}
             <nav className="hidden lg:flex items-center gap-1">
-              {navItems.map((item) => (
-                <a
+              {navItems.map((item, index) => (
+                <motion.a
                   key={item.href}
                   href={item.href}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                   className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                     isActive(item.href)
                       ? "text-white"
@@ -94,10 +112,18 @@ const Header: React.FC = () => {
                   }`}
                 >
                   {item.label}
-                  {isActive(item.href) && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
-                  )}
-                </a>
+                  <AnimatePresence>
+                    {isActive(item.href) && (
+                      <motion.span 
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: 1 }}
+                        exit={{ scaleX: 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
+                  </AnimatePresence>
+                </motion.a>
               ))}
             </nav>
 
@@ -171,87 +197,96 @@ const Header: React.FC = () => {
         </div>
 
         {/* Mobile Nav Menu */}
-        <div
-          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <nav className="container mx-auto px-4 sm:px-6 pb-6 space-y-1">
-            {navItems.map((item, index) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={`block px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  isActive(item.href)
-                    ? "text-white bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30"
-                    : "text-gray-300 hover:text-white hover:bg-white/5"
-                }`}
-                style={{
-                  animation: open
-                    ? `slideIn 0.3s ease-out ${index * 0.05}s forwards`
-                    : "none",
-                  opacity: open ? 1 : 0,
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  {item.label}
-                  {isActive(item.href) && (
-                    <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
-                  )}
-                </div>
-              </a>
-            ))}
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              className="lg:hidden overflow-hidden"
+            >
+              <nav className="container mx-auto px-4 sm:px-6 pb-6 space-y-1">
+                {navItems.map((item, index) => (
+                  <motion.a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ 
+                      duration: 0.3, 
+                      delay: index * 0.05,
+                      ease: [0.4, 0, 0.2, 1]
+                    }}
+                    whileHover={{ x: 5 }}
+                    className={`block px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                      isActive(item.href)
+                        ? "text-white bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30"
+                        : "text-gray-300 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      {item.label}
+                      <AnimatePresence>
+                        {isActive(item.href) && (
+                          <motion.div 
+                            className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0 }}
+                          />
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.a>
+                ))}
 
-            {loggedInUser ? (
-               <button
-                  onClick={handleLogout}
-                  className="w-full mt-4 px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-lg shadow-red-500/20 hover:shadow-red-500/40 text-center"
-                  style={{
-                    animation: open
-                      ? `slideIn 0.3s ease-out ${navItems.length * 0.05}s forwards`
-                      : "none",
-                    opacity: open ? 1 : 0,
-                  }}
-                >
-                  Logout
-                </button>
-            ) : (
-              <a
-                href="/signup"
-                onClick={() => setOpen(false)}
-                className="block mt-4 px-4 py-3 text-center text-sm font-semibold text-black bg-white rounded-lg hover:bg-gray-100 transition-colors"
-                style={{
-                  animation: open
-                    ? `slideIn 0.3s ease-out ${
-                        navItems.length * 0.05
-                      }s forwards`
-                    : "none",
-                  opacity: open ? 1 : 0,
-                }}
-              >
-                Get Started
-              </a>
-            )}
-          </nav>
-        </div>
+                {loggedInUser ? (
+                  <motion.button
+                    onClick={handleLogout}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ 
+                      duration: 0.3, 
+                      delay: navItems.length * 0.05,
+                      ease: [0.4, 0, 0.2, 1]
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full mt-4 px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-lg shadow-red-500/20 hover:shadow-red-500/40 text-center"
+                  >
+                    Logout
+                  </motion.button>
+                ) : (
+                  <motion.a
+                    href="/signup"
+                    onClick={() => setOpen(false)}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ 
+                      duration: 0.3, 
+                      delay: navItems.length * 0.05,
+                      ease: [0.4, 0, 0.2, 1]
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="block mt-4 px-4 py-3 text-center text-sm font-semibold text-black bg-white rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Get Started
+                  </motion.a>
+                )}
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Spacer to prevent content from going under fixed header */}
       <div className="h-16 sm:h-20" />
-
-      <style jsx>{`
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
     </>
   );
 };

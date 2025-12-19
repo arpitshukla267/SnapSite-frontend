@@ -6,10 +6,11 @@ import { getTemplateBySlug } from "../../lib/getTemplateBySlug";
 import { SectionRegistry } from "../../lib/sectionRegistry";
 import Sidebar from "../../components/builder/Sidebar";
 import BuilderHeader from "../../components/builder/BuilderHeader";
-import { ImageIcon, Upload, X, Type, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { ImageIcon, Upload, X, Type, Trash2, ChevronUp, ChevronDown, Lock, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { exportHTMLZip, exportReactZip, exportNextJsZip } from "../../lib/exporter";
 import { API_BASE_URL } from "../../config";
+import toast from "react-hot-toast";
 
 // DnD Kit Imports
 import {
@@ -61,6 +62,7 @@ function BuilderContent() {
   // Save modal state
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveTemplateName, setSaveTemplateName] = useState("");
+  const [saveTemplateVisibility, setSaveTemplateVisibility] = useState(false); // false = private, true = public
   const [isSaving, setIsSaving] = useState(false);
 
   // Responsive State
@@ -71,21 +73,71 @@ function BuilderContent() {
   useEffect(() => {
     // Check if loading a saved template
     if (savedTemplateId) {
-      const savedTemplateData = localStorage.getItem("savedTemplate");
-      if (savedTemplateData) {
+      const loadSavedTemplate = async () => {
         try {
-          const template = JSON.parse(savedTemplateData);
-          if (template.layout && Array.isArray(template.layout)) {
-            const sectionsWithIds = template.layout.map((sec: any, index: number) => ({
-              ...sec,
-              id: sec.id ?? `block-${index}-${Date.now()}`,
-            }));
-            setLayout(sectionsWithIds);
+          // Try to fetch from API (works for both public and owned templates)
+          const token = localStorage.getItem("token");
+          const headers: HeadersInit = {};
+          if (token) {
+            headers.Authorization = `Bearer ${token}`;
+          }
+          
+          const res = await fetch(`${API_BASE_URL}/api/templates/saved/${savedTemplateId}`, {
+            headers,
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            const template = data.template;
+            if (template.layout && Array.isArray(template.layout)) {
+              const sectionsWithIds = template.layout.map((sec: any, index: number) => ({
+                ...sec,
+                id: sec.id ?? `block-${index}-${Date.now()}`,
+              }));
+              setLayout(sectionsWithIds);
+              // Store in localStorage for reference
+              localStorage.setItem("savedTemplate", JSON.stringify(template));
+            }
+          } else {
+            // Fallback to localStorage if API fails
+            const savedTemplateData = localStorage.getItem("savedTemplate");
+            if (savedTemplateData) {
+              try {
+                const template = JSON.parse(savedTemplateData);
+                if (template.layout && Array.isArray(template.layout)) {
+                  const sectionsWithIds = template.layout.map((sec: any, index: number) => ({
+                    ...sec,
+                    id: sec.id ?? `block-${index}-${Date.now()}`,
+                  }));
+                  setLayout(sectionsWithIds);
+                }
+              } catch (err) {
+                console.error("Error loading saved template from localStorage:", err);
+              }
+            }
           }
         } catch (err) {
           console.error("Error loading saved template:", err);
+          // Fallback to localStorage
+          const savedTemplateData = localStorage.getItem("savedTemplate");
+          if (savedTemplateData) {
+            try {
+              const template = JSON.parse(savedTemplateData);
+              if (template.layout && Array.isArray(template.layout)) {
+                const sectionsWithIds = template.layout.map((sec: any, index: number) => ({
+                  ...sec,
+                  id: sec.id ?? `block-${index}-${Date.now()}`,
+                }));
+                setLayout(sectionsWithIds);
+              }
+            } catch (err) {
+              console.error("Error loading saved template from localStorage:", err);
+            }
+          }
         }
-      }
+      };
+      
+      loadSavedTemplate();
       return;
     }
 
@@ -541,28 +593,30 @@ function BuilderContent() {
   const handleSave = () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Please log in to save templates");
+      toast.error("Please log in to save templates");
       return;
     }
 
     if (layout.length === 0) {
-      alert("Cannot save empty template");
+      toast.error("Cannot save empty template");
       return;
     }
 
-    // Load existing name if updating
+    // Load existing name and visibility if updating
     if (savedTemplateId) {
       const savedTemplateData = localStorage.getItem("savedTemplate");
       if (savedTemplateData) {
         try {
           const template = JSON.parse(savedTemplateData);
           setSaveTemplateName(template.name || "");
+          setSaveTemplateVisibility(template.isPublic || false);
         } catch (err) {
           console.error("Error parsing saved template:", err);
         }
       }
     } else {
       setSaveTemplateName("");
+      setSaveTemplateVisibility(false); // Default to private for new templates
     }
 
     setShowSaveModal(true);
@@ -570,7 +624,7 @@ function BuilderContent() {
 
   const handleSaveSubmit = async () => {
     if (!saveTemplateName.trim()) {
-      alert("Please enter a template name");
+      toast.error("Please enter a template name");
       return;
     }
 
@@ -580,21 +634,43 @@ function BuilderContent() {
     setIsSaving(true);
 
     try {
-      const url = savedTemplateId
+      // Check if this is a public template and user is not the owner
+      let isOwner = true;
+      let shouldCreateNew = false;
+      
+      if (savedTemplateId) {
+        const savedTemplateData = localStorage.getItem("savedTemplate");
+        if (savedTemplateData) {
+          try {
+            const template = JSON.parse(savedTemplateData);
+            const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+            // Check if template is public and user is not the owner
+            if (template.isPublic && template.user?._id !== currentUser._id) {
+              isOwner = false;
+              shouldCreateNew = true; // Save as new template instead of updating
+            }
+          } catch (err) {
+            console.error("Error parsing saved template:", err);
+          }
+        }
+      }
+
+      const url = (savedTemplateId && isOwner)
         ? `${API_BASE_URL}/api/templates/saved/${savedTemplateId}`
         : `${API_BASE_URL}/api/templates/saved`;
       
       const res = await fetch(url, {
-        method: savedTemplateId ? "PUT" : "POST",
+        method: (savedTemplateId && isOwner) ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: saveTemplateName.trim(),
-          originalTemplateSlug: templateSlug || null,
+          originalTemplateSlug: templateSlug || (savedTemplateId ? `saved-${savedTemplateId}` : null),
           layout: layout,
           thumbnail: null, // Could generate thumbnail later
+          isPublic: saveTemplateVisibility, // Use visibility from modal
         }),
       });
 
@@ -602,32 +678,52 @@ function BuilderContent() {
         const data = await res.json();
         setShowSaveModal(false);
         setSaveTemplateName("");
+        setSaveTemplateVisibility(false);
+        
+        if (shouldCreateNew) {
+          toast.success("Template saved as a new copy (original template is public and cannot be modified)", {
+            duration: 5000,
+          });
+        } else {
+          const visibilityMsg = saveTemplateVisibility 
+            ? "Template saved and published! It's now visible to all users." 
+            : "Template saved successfully!";
+          toast.success(visibilityMsg, {
+            duration: saveTemplateVisibility ? 5000 : 3000,
+          });
+        }
         
         // Update URL if it's a new save
-        if (!savedTemplateId && data.template?._id) {
+        if ((!savedTemplateId || shouldCreateNew) && data.template?._id) {
           window.history.replaceState({}, "", `/builder?saved=${data.template._id}`);
           // Update localStorage
           localStorage.setItem("savedTemplate", JSON.stringify(data.template));
-        } else if (savedTemplateId && data.template) {
+        } else if (savedTemplateId && isOwner && data.template) {
           // Update localStorage for existing template
           localStorage.setItem("savedTemplate", JSON.stringify(data.template));
         }
       } else {
         const error = await res.json();
-        alert(error.message || "Failed to save template");
+        toast.error(error.message || "Failed to save template");
       }
     } catch (err) {
       console.error("Error saving template:", err);
-      alert("Failed to save template. Please check your connection.");
+      toast.error("Failed to save template. Please check your connection.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleExport = async (exportType: "html" | "react" | "nextjs" = "html") => {
-    if (layout.length === 0) return;
+    if (layout.length === 0) {
+      toast.error("Cannot export empty template");
+      return;
+    }
 
     try {
+      // Show loading toast
+      const loadingToast = toast.loading("Exporting template...");
+      
       // Perform export
       if (exportType === "html") {
         await exportHTMLZip(layout);
@@ -636,6 +732,9 @@ function BuilderContent() {
       } else if (exportType === "nextjs") {
         await exportNextJsZip(layout);
       }
+
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
 
       // Record export in database
       const token = localStorage.getItem("token");
@@ -663,9 +762,14 @@ function BuilderContent() {
           // Don't show error to user, export was successful
         }
       }
+
+      // Show success toast
+      toast.success(`Template exported as ${exportType.toUpperCase()}!`, {
+        duration: 3000,
+      });
     } catch (err) {
       console.error("Export failed:", err);
-      alert("Export failed. Please try again.");
+      toast.error("Export failed. Please try again.");
     }
   };
 
@@ -916,11 +1020,11 @@ function BuilderContent() {
                         const file = e.dataTransfer.files?.[0];
                         if (file) {
                           if (file.size > 5 * 1024 * 1024) {
-                            alert("File size must be less than 5MB");
+                            toast.error("File size must be less than 5MB");
                             return;
                           }
                           if (!file.type.startsWith("image/")) {
-                            alert("Only image files are allowed");
+                            toast.error("Only image files are allowed");
                             return;
                           }
                           const reader = new FileReader();
@@ -952,7 +1056,7 @@ function BuilderContent() {
                           const file = e.target.files?.[0];
                           if (file) {
                             if (file.size > 5 * 1024 * 1024) {
-                              alert("File size must be less than 5MB");
+                              toast.error("File size must be less than 5MB");
                               return;
                             }
                             const reader = new FileReader();
@@ -1239,6 +1343,47 @@ function BuilderContent() {
                 autoFocus
               />
             </div>
+
+            {/* Visibility Toggle */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-300 mb-3">
+                Visibility
+              </label>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => !isSaving && setSaveTemplateVisibility(false)}
+                  disabled={isSaving}
+                  className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all border-2 ${
+                    !saveTemplateVisibility
+                      ? "bg-blue-500/20 border-blue-500/50 text-blue-400"
+                      : "bg-white/5 border-white/10 text-gray-400 hover:border-white/20"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Lock size={18} />
+                    <span>Private</span>
+                  </div>
+                  <p className="text-xs mt-1 opacity-75">Only you can see it</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => !isSaving && setSaveTemplateVisibility(true)}
+                  disabled={isSaving}
+                  className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all border-2 ${
+                    saveTemplateVisibility
+                      ? "bg-green-500/20 border-green-500/50 text-green-400"
+                      : "bg-white/5 border-white/10 text-gray-400 hover:border-white/20"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Globe size={18} />
+                    <span>Public</span>
+                  </div>
+                  <p className="text-xs mt-1 opacity-75">Visible to everyone</p>
+                </button>
+              </div>
+            </div>
             
             <div className="flex gap-3">
               <button
@@ -1253,6 +1398,7 @@ function BuilderContent() {
                   if (!isSaving) {
                     setShowSaveModal(false);
                     setSaveTemplateName("");
+                    setSaveTemplateVisibility(false);
                   }
                 }}
                 disabled={isSaving}

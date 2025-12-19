@@ -712,7 +712,7 @@ npm run dev
     console.log("Next.js export completed.");
   } catch (error) {
     console.error("Export failed:", error);
-    alert("Export failed. Check console for details.");
+    throw error; // Let the caller handle the error with toast
   }
 }
 
@@ -814,7 +814,7 @@ npm start
     console.log("React export completed.");
   } catch (error) {
     console.error("React Export failed:", error);
-    alert("Export failed. Check console for details.");
+    throw error; // Let the caller handle the error with toast
   }
 }
 
@@ -885,6 +885,6 @@ npx serve .
     console.log("HTML export completed.");
   } catch (error) {
     console.error("HTML Export failed:", error);
-    alert("Export failed. Check console for details.");
+    throw error; // Let the caller handle the error with toast
   }
 }
