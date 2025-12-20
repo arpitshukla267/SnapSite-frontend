@@ -135,22 +135,28 @@ export default function Sidebar({ layout, onExport }: { layout: any[]; onExport?
                   </p>
                 </div>
                 <div className="p-2">
-                  {/* <button
+                  <button
                     onClick={async () => {
-                      console.log("Export Next.js clicked", layout);
-                      await exportNextJsZip(layout);
                       setShowExportDropdown(false);
+                      if (onExport) {
+                        onExport("nextjs");
+                      } else {
+                        await exportNextJsZip(layout);
+                      }
                     }}
                     className="w-full text-left px-3 py-2.5 text-sm text-gray-200 hover:bg-indigo-500/20 hover:text-white rounded-lg transition-all flex items-center gap-2 group"
                   >
                     <span className="text-xs font-mono bg-white/5 px-2 py-0.5 rounded group-hover:bg-indigo-500/30">▲</span>
                     <span className="font-medium">Next.js</span>
                   </button>
-                  <button
+                  {/* <button
                     onClick={async () => {
-                      console.log("Export React clicked", layout);
-                      await exportReactZip(layout);
                       setShowExportDropdown(false);
+                      if (onExport) {
+                        onExport("react");
+                      } else {
+                        await exportReactZip(layout);
+                      }
                     }}
                     className="w-full text-left px-3 py-2.5 text-sm text-gray-200 hover:bg-blue-500/20 hover:text-white rounded-lg transition-all flex items-center gap-2 group"
                   >

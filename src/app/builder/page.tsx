@@ -769,14 +769,14 @@ function BuilderContent() {
       // Dismiss loading toast
       toast.dismiss(loadingToast);
 
-      // Record export in database
+      // Record export in database (non-blocking - export already succeeded)
       const token = localStorage.getItem("token");
-      if (token) {
+      if (token && validateApiUrl()) {
         try {
           // Estimate file size (rough approximation)
           const estimatedSize = JSON.stringify(layout).length;
 
-          await fetch(`${API_BASE_URL}/api/templates/exported`, {
+          const response = await fetch(`${API_BASE_URL}/api/templates/exported`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -790,9 +790,13 @@ function BuilderContent() {
               layout: layout, // Optional: store layout for reference
             }),
           });
+
+          if (!response.ok) {
+            console.warn("Failed to record export in database:", response.statusText);
+          }
         } catch (err) {
-          console.error("Error recording export:", err);
-          // Don't show error to user, export was successful
+          // Silently fail - export was successful, database recording is optional
+          console.warn("Could not record export in database (non-critical):", err);
         }
       }
 
