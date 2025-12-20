@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Heart, Save, Download, Trash2, Eye, Edit, Calendar, FileText, ExternalLink, Lock, Globe, BarChart3, TrendingUp, Users, Upload, X, ImageIcon } from "lucide-react";
+import { Heart, Save, Download, Trash2, Eye, Edit, Calendar, FileText, ExternalLink, Lock, Globe, BarChart3, TrendingUp, Users, Upload, X, ImageIcon, User, Link as LinkIcon } from "lucide-react";
 import { API_BASE_URL, validateApiUrl } from "../../config";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 export default function AccountPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"wishlist" | "saved" | "exported">("saved");
+  const [activeTab, setActiveTab] = useState<"wishlist" | "saved" | "exported" | "profile">("saved");
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
   const [exportedTemplates, setExportedTemplates] = useState<any[]>([]);
@@ -37,6 +37,12 @@ export default function AccountPage() {
   const [deleteWishlistSlug, setDeleteWishlistSlug] = useState<string | null>(null);
   const [deleteWishlistName, setDeleteWishlistName] = useState<string>("");
   const [deletingWishlist, setDeletingWishlist] = useState(false);
+  
+  // Profile edit state
+  const [profileBio, setProfileBio] = useState<string>("");
+  const [profilePortfolioLink, setProfilePortfolioLink] = useState<string>("");
+  const [profileAvatar, setProfileAvatar] = useState<string>("");
+  const [updatingProfile, setUpdatingProfile] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -47,7 +53,11 @@ export default function AccountPage() {
       return;
     }
 
-    setUser(JSON.parse(storedUser));
+    const userData = JSON.parse(storedUser);
+    setUser(userData);
+    setProfileBio(userData.bio || "");
+    setProfilePortfolioLink(userData.portfolioLink || "");
+    setProfileAvatar(userData.avatar || "");
     fetchAllData(token);
   }, [router]);
 
@@ -192,6 +202,49 @@ export default function AccountPage() {
     setThumbnailLink(template.thumbnail && !template.thumbnail.startsWith("data:") ? template.thumbnail : "");
     setThumbnailInputMode(template.thumbnail && template.thumbnail.startsWith("data:") ? "upload" : "link");
     setShowThumbnailModal(true);
+  };
+
+  const handleUpdateProfile = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    if (!validateApiUrl()) {
+      toast.error("API configuration error. Please check your environment variables.");
+      return;
+    }
+
+    setUpdatingProfile(true);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/users/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          bio: profileBio,
+          portfolioLink: profilePortfolioLink,
+          avatar: profileAvatar,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Update local user state
+        const updatedUser = { ...user, ...data.user };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        toast.success("Profile updated successfully!");
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Failed to update profile");
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      toast.error("Error updating profile. Please try again.");
+    } finally {
+      setUpdatingProfile(false);
+    }
   };
 
   const handleThumbnailUpdate = async () => {
@@ -431,6 +484,19 @@ export default function AccountPage() {
             <div className="flex items-center gap-2">
               <Download size={18} />
               Exported Templates ({exportedTemplates.length})
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              activeTab === "profile"
+                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25"
+                : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <User size={18} />
+              Profile
             </div>
           </button>
         </div>
@@ -682,6 +748,107 @@ export default function AccountPage() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* PROFILE TAB */}
+          {activeTab === "profile" && (
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-8 border border-white/10 shadow-xl">
+                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                  <User size={24} />
+                  Edit Profile
+                </h2>
+
+                {/* Avatar Section */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-300 mb-3">Profile Avatar</label>
+                  <div className="flex items-center gap-4">
+                    {profileAvatar ? (
+                      <img
+                        src={profileAvatar}
+                        alt="Avatar"
+                        className="w-24 h-24 rounded-full border-4 border-purple-500/50 object-cover"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full border-4 border-purple-500/50 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                        <User size={40} className="text-white" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={profileAvatar}
+                        onChange={(e) => setProfileAvatar(e.target.value)}
+                        placeholder="Avatar URL (or leave empty for default)"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                      />
+                      <p className="text-xs text-gray-500 mt-2">Enter an image URL for your profile picture</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bio Section */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-300 mb-3">Bio</label>
+                  <textarea
+                    value={profileBio}
+                    onChange={(e) => setProfileBio(e.target.value)}
+                    placeholder="Tell us about yourself..."
+                    rows={4}
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all resize-none"
+                  />
+                </div>
+
+                {/* Portfolio Link Section */}
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                    <LinkIcon size={16} />
+                    Portfolio / Resume Link
+                  </label>
+                  <input
+                    type="url"
+                    value={profilePortfolioLink}
+                    onChange={(e) => setProfilePortfolioLink(e.target.value)}
+                    placeholder="https://your-portfolio.com or link to your resume"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">Add a link to your portfolio, resume, or personal website</p>
+                </div>
+
+                {/* User Info (Read-only) */}
+                <div className="mb-6 p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">Name:</span>
+                      <p className="text-white font-semibold">{user?.name}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Username:</span>
+                      <p className="text-white font-semibold">@{user?.username}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Email:</span>
+                      <p className="text-white font-semibold">{user?.email}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Member Since:</span>
+                      <p className="text-white font-semibold">
+                        {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <button
+                  onClick={handleUpdateProfile}
+                  disabled={updatingProfile}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-lg font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {updatingProfile ? "Updating..." : "Save Profile"}
+                </button>
+              </div>
             </div>
           )}
         </div>

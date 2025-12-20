@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { Search, Grid, List, X, Eye, Sparkles, ArrowRight, Check, Heart } from "lucide-react";
+import { Search, Grid, List, X, Eye, Sparkles, ArrowRight, Check, Heart, User, Plus } from "lucide-react";
 import { SectionRegistry } from "../../lib/sectionRegistry";
 import { API_BASE_URL, validateApiUrl } from "../../config";
 
@@ -190,6 +190,7 @@ export default function TemplatesPage() {
               features: ["Custom Template", "User Created", "Public"],
               creator: t.user?.name || "Unknown",
               creatorUsername: t.user?.username || "",
+              creatorId: t.user?._id || t.user || "",
               isSavedTemplate: true,
               savedTemplateId: t._id,
               isPublic: true, // Mark as public
@@ -395,9 +396,20 @@ export default function TemplatesPage() {
             </span>
           </h1>
           
-          <p className="text-gray-400 text-base sm:text-lg md:text-xl max-w-2xl mx-auto animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+          <p className="text-gray-400 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-6 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
             Professionally designed, fully customizable templates to kickstart your project in minutes.
           </p>
+          
+          {/* Create Your Own Template Button */}
+          <div className="animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+            <a
+              href="/builder"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-lg font-semibold shadow-lg shadow-purple-500/30 hover:scale-105 transition-all"
+            >
+              <Plus size={20} />
+              Create Your Own Template
+            </a>
+          </div>
         </div>
 
         {/* SEARCH AND FILTER BAR */}
@@ -485,32 +497,65 @@ export default function TemplatesPage() {
                   </span>
                 </div>
                 
-                {/* Creator Badge for Saved Templates */}
+                {/* Creator Badge and Profile Icon for Saved Templates */}
                 {t.isSavedTemplate && t.creator && (
-                  <div className="absolute top-4 right-16 z-10">
-                    <span className="px-3 py-1 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-md border border-green-500/30 text-green-300 text-xs font-semibold">
+                  <div className="absolute top-4 right-4 z-10 flex flex-row-reverse items-center gap-2">
+                    {/* Profile Icon - More visible */}
+                    {t.creatorId && (
+                      <a
+                        href={`/profile/${t.creatorId}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-2.5 rounded-full bg-gradient-to-r from-blue-500/30 to-indigo-500/30 hover:from-blue-500/40 hover:to-indigo-500/40 border-2 border-blue-400/50 text-blue-200 hover:text-blue-100 backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-lg shadow-blue-500/20"
+                        title={`View ${t.creator}'s profile`}
+                      >
+                        <User size={18} className="fill-current" />
+                      </a>
+                    )}
+                    {/* Creator Badge */}
+                    <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-md border border-green-500/30 text-green-300 text-xs font-semibold">
                       by {t.creator}
                     </span>
                   </div>
                 )}
 
                 {/* Wishlist Heart Icon - Show for all templates including user-designed */}
-                <div className="absolute top-4 right-4 z-10">
-                  <button
-                    onClick={(e) => handleWishlistToggle(e, t)}
-                    disabled={isLoadingWishlist}
-                    className={`p-2 rounded-full backdrop-blur-md border transition-all ${
-                      wishlistStatus[t.slug]
-                        ? "bg-red-500/20 border-red-500/50 text-red-400"
-                        : "bg-white/10 border-white/20 text-white/70 hover:text-white"
-                    } hover:scale-110 active:scale-95`}
-                  >
-                    <Heart
-                      size={18}
-                      className={wishlistStatus[t.slug] ? "fill-current" : ""}
-                    />
-                  </button>
-                </div>
+                {!t.isSavedTemplate && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <button
+                      onClick={(e) => handleWishlistToggle(e, t)}
+                      disabled={isLoadingWishlist}
+                      className={`p-2.5 rounded-full backdrop-blur-md border transition-all ${
+                        wishlistStatus[t.slug]
+                          ? "bg-red-500/20 border-red-500/50 text-red-400"
+                          : "bg-white/10 border-white/20 text-white/70 hover:text-white"
+                      } hover:scale-110 active:scale-95`}
+                    >
+                      <Heart
+                        size={18}
+                        className={wishlistStatus[t.slug] ? "fill-current" : ""}
+                      />
+                    </button>
+                  </div>
+                )}
+                {/* Wishlist Heart Icon for user-designed templates - positioned below profile icon */}
+                {t.isSavedTemplate && (
+                  <div className="absolute top-16 right-4 z-10">
+                    <button
+                      onClick={(e) => handleWishlistToggle(e, t)}
+                      disabled={isLoadingWishlist}
+                      className={`p-2.5 rounded-full backdrop-blur-md border transition-all ${
+                        wishlistStatus[t.slug]
+                          ? "bg-red-500/20 border-red-500/50 text-red-400"
+                          : "bg-white/10 border-white/20 text-white/70 hover:text-white"
+                      } hover:scale-110 active:scale-100`}
+                    >
+                      <Heart
+                        size={18}
+                        className={wishlistStatus[t.slug] ? "fill-current" : ""}
+                      />
+                    </button>
+                  </div>
+                )}
 
                 {/* Thumbnail with Overlay */}
                 <div className="relative overflow-hidden">

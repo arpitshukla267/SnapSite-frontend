@@ -74,6 +74,13 @@ function BuilderContent() {
 
   // Load Template or Saved Template
   useEffect(() => {
+    // If no template or saved template, start with empty builder
+    if (!templateSlug && !savedTemplateId) {
+      setLayout([]);
+      setMounted(true);
+      return;
+    }
+
     // Check if loading a saved template
     if (savedTemplateId) {
       const loadSavedTemplate = async () => {

@@ -37,10 +37,10 @@ export default function BuilderHeader({
 
         <div>
           <h1 className="font-semibold text-sm text-white">
-            {templateName || "Untitled Site"}
+            {templateName || "Create Your Own Template"}
           </h1>
           <span className="text-xs text-gray-400">
-            Draft • Autosaved
+            {templateName ? "Draft • Autosaved" : "Start from scratch"}
           </span>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function BuilderHeader({
         <button
           onClick={onSave}
           className="flex items-center space-x-2 px-4 py-2
-            bg-blue-600 text-white text-sm font-medium
+            bg-blue-600 text-white text-sm text-nowrap font-medium
             rounded-lg hover:bg-blue-500
             shadow-md shadow-blue-600/30 transition"
         >
