@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Search, Grid, List, X, Eye, Sparkles, ArrowRight, Check, Heart, User, Plus } from "lucide-react";
 import { SectionRegistry } from "../../lib/sectionRegistry";
 import { API_BASE_URL, validateApiUrl } from "../../config";
+import { getTemplateBySlug } from "../../lib/getTemplateBySlug";
 
 // Mock data for demonstration
 const mockTemplates = [
@@ -55,7 +56,7 @@ const mockTemplates = [
   {
     slug: "template-4",
     name: "Startup Launch",
-    thumbnail: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop",
+    thumbnail: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=600&fit=crop",
     category: "business",
     sections: [
         { type: "heroSplit", props: { title: "Transform Your Business Today", subtitle: "Enterprise-grade solutions designed to scale." } },
@@ -72,7 +73,7 @@ const mockTemplates = [
   {
     slug: "template-5",
     name: "Personal Brand",
-    thumbnail: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop",
+    thumbnail: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop",
     category: "portfolio",
     sections: [
         { type: "heroCentered", props: { title: "Design That Inspires", subtitle: "Showcasing creative excellence." } },
@@ -89,7 +90,7 @@ const mockTemplates = [
   {
     slug: "template-6",
     name: "Marketing Agency",
-    thumbnail: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop",
+    thumbnail: "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&h=600&fit=crop",
     category: "agency",
     sections: [
         { type: "heroGradient", props: { title: "The Future of Productivity", subtitle: "Streamline your workflow." } },
@@ -180,6 +181,7 @@ const mockTemplates = [
 
 export default function TemplatesPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [selectedTemplateData, setSelectedTemplateData] = useState<any>(null);
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -188,6 +190,26 @@ export default function TemplatesPage() {
   const [isLoadingWishlist, setIsLoadingWishlist] = useState(false);
   const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
   const [loadingSaved, setLoadingSaved] = useState(false);
+  
+  // Load actual template data when template is selected for preview
+  useEffect(() => {
+    if (selectedTemplate && !selectedTemplate.isSavedTemplate) {
+      const templateData = getTemplateBySlug(selectedTemplate.slug);
+      if (templateData) {
+        setSelectedTemplateData({
+          ...selectedTemplate,
+          sections: templateData.sections || selectedTemplate.sections
+        });
+      } else {
+        setSelectedTemplateData(selectedTemplate);
+      }
+    } else if (selectedTemplate && selectedTemplate.isSavedTemplate) {
+      // For saved templates, use the sections from the template object
+      setSelectedTemplateData(selectedTemplate);
+    } else {
+      setSelectedTemplateData(null);
+    }
+  }, [selectedTemplate]);
 
   // Combine mock templates with saved templates
   const allTemplates = [...mockTemplates, ...savedTemplates];
@@ -689,7 +711,7 @@ export default function TemplatesPage() {
       </div>
 
       {/* ENHANCED MODAL PREVIEW */}
-      {selectedTemplate && (
+      {selectedTemplate && selectedTemplateData && (
         <div
           className="fixed inset-0 bg-black/90 backdrop-blur-xl flex justify-center items-center z-[9999] p-4 animate-fadeIn"
           onClick={() => setSelectedTemplate(null)}
@@ -746,10 +768,10 @@ export default function TemplatesPage() {
                     {/* Browser Content */}
                     <div className="bg-white min-h-[500px] relative">
                       {/* LIVE TEMPLATE PREVIEW */}
-                      {selectedTemplate.sections && selectedTemplate.sections.length > 0 ? (
+                      {selectedTemplateData.sections && selectedTemplateData.sections.length > 0 ? (
                         <div>
                          {/* Render sections dynamically */}
-                          {selectedTemplate.sections.map((section: any, idx: number) => {
+                          {selectedTemplateData.sections.map((section: any, idx: number) => {
                             const SectionComponent = SectionRegistry[section.type]?.component;
                             // If component exists, render it
                             if (SectionComponent) {
@@ -818,7 +840,7 @@ export default function TemplatesPage() {
                 <div className="mb-6 hidden lg:block">
                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Features</h3>
                   <div className="space-y-2">
-                    {selectedTemplate.features.map((feature: string, idx: number) => (
+                    {selectedTemplateData.features && selectedTemplateData.features.map((feature: string, idx: number) => (
                       <div key={idx} className="flex items-center gap-2 text-sm text-gray-300">
                         <div className="flex items-center justify-center w-5 h-5 bg-green-500/20 rounded-full">
                           <Check size={12} className="text-green-400" />
@@ -833,7 +855,7 @@ export default function TemplatesPage() {
                 <div className="mb-6 hidden lg:block">
                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Included Sections</h3>
                   <div className="space-y-2">
-                    {selectedTemplate.sections.map((section: any, idx: number) => (
+                    {selectedTemplateData.sections && selectedTemplateData.sections.map((section: any, idx: number) => (
                       <div key={idx} className="bg-white/5 rounded-lg p-3 border border-white/5">
                         <span className="text-gray-300 text-sm font-medium">{section.type}</span>
                       </div>

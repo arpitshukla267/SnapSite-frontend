@@ -1,0 +1,103 @@
+{
+  "name": "Premium Hero Advanced Template",
+  "sections": [
+    {
+      "type": "heroAdvanced",
+      "props": {
+        "title": "Build Something Amazing",
+        "subtitle": "Create stunning websites with our powerful builder. No coding required.",
+        "buttonText": "Get Started",
+        "buttonText2": "Learn More"
+      }
+    },
+    {
+      "type": "featuresAdvanced",
+      "props": {
+        "title": "Our Features",
+        "subtitle": "Everything you need to succeed",
+        "items": [
+          {
+            "title": "Advanced Animations",
+            "desc": "Smooth, professional animations that captivate your audience",
+            "icon": "✨"
+          },
+          {
+            "title": "Premium Design",
+            "desc": "Beautiful, modern designs that stand out from the crowd",
+            "icon": "🎨"
+          },
+          {
+            "title": "Interactive Elements",
+            "desc": "Engage visitors with interactive components and effects",
+            "icon": "🚀"
+          }
+        ]
+      }
+    },
+    {
+      "type": "aboutAdvanced",
+      "props": {
+        "title": "Who We Are",
+        "description": "We are a team of passionate creators, innovators, and problem solvers dedicated to helping you build amazing digital experiences.",
+        "image": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=600&fit=crop"
+      }
+    },
+    {
+      "type": "testimonialsAdvanced",
+      "props": {
+        "title": "What Our Clients Say",
+        "testimonials": [
+          {
+            "name": "Alex Morgan",
+            "role": "CEO, StartupHub",
+            "image": "https://i.pravatar.cc/150?img=12",
+            "text": "The best website builder we've ever used. It's transformed our online presence completely."
+          },
+          {
+            "name": "Jordan Lee",
+            "role": "Creative Director",
+            "image": "https://i.pravatar.cc/150?img=20",
+            "text": "Incredible features and stunning designs. Our clients are always impressed."
+          },
+          {
+            "name": "Taylor Kim",
+            "role": "Marketing Lead",
+            "image": "https://i.pravatar.cc/150?img=15",
+            "text": "Easy to use, powerful, and beautiful. Everything we needed in one platform."
+          }
+        ]
+      }
+    },
+    {
+      "type": "portfolioAdvanced",
+      "props": {
+        "title": "Our Portfolio",
+        "subtitle": "Showcasing our best work",
+        "projects": [
+          {
+            "title": "E-Commerce Platform",
+            "category": "Web Development",
+            "image": "https://images.unsplash.com/photo-1557821552-17105176677c?w=800&h=600&fit=crop"
+          },
+          {
+            "title": "Brand Identity",
+            "category": "Design",
+            "image": "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop"
+          },
+          {
+            "title": "Mobile App",
+            "category": "App Development",
+            "image": "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop"
+          }
+        ]
+      }
+    },
+    {
+      "type": "footerSimple",
+      "props": {
+        "companyName": "Premium Studio"
+      }
+    }
+  ]
+}
+

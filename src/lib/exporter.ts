@@ -1,10 +1,20 @@
 import { SectionRegistry } from "./sectionRegistry";
+import { themeToProps } from "./themeToProps";
 
 // Helper function to convert HTML to React JSX
 function htmlToJsx(html: string): string {
   let jsx = html
     // Remove HTML comments
     .replace(/<!--[\s\S]*?-->/g, "")
+    // Convert self-closing tags that might not be properly closed
+    .replace(/<img([^>]*?)(?<!\s\/)>/gi, '<img$1 />')
+    .replace(/<input([^>]*?)(?<!\s\/)>/gi, '<input$1 />')
+    .replace(/<br([^>]*?)(?<!\s\/)>/gi, '<br$1 />')
+    .replace(/<hr([^>]*?)(?<!\s\/)>/gi, '<hr$1 />')
+    // Remove empty strings that might be left from ternary operators (they become empty text nodes)
+    .replace(/>\s*<\//g, '></')
+    .replace(/{\s*''\s*}/g, '')
+    .replace(/{\s*""\s*}/g, '')
     // Convert template literals ${props.xxx || "default"} to JSX {xxx || "default"}
     // Handle complex expressions like ${props.title || "Welcome"}
     .replace(/\$\{props\.(\w+)(\s*\|\|\s*"[^"]*")?\}/g, (match, propName, defaultValue) => {
@@ -13,8 +23,15 @@ function htmlToJsx(html: string): string {
       }
       return `{${propName}}`;
     })
-    // Convert other template expressions
-    .replace(/\$\{([^}]+)\}/g, "{$1}")
+    // Convert other template expressions - but be careful with nested expressions
+    // First handle simple expressions
+    .replace(/\$\{([^}]+)\}/g, (match, expr) => {
+      // If it's a ternary or complex expression, wrap it properly
+      if (expr.includes('?') || expr.includes('||') || expr.includes('&&')) {
+        return `{${expr}}`;
+      }
+      return `{${expr}}`;
+    })
     // Convert class to className (be careful with word boundaries)
     .replace(/\bclass=/g, "className=")
     // Convert for to htmlFor
@@ -31,6 +48,11 @@ function htmlToJsx(html: string): string {
           const key = s.substring(0, colonIndex).trim();
           const value = s.substring(colonIndex + 1).trim();
           const camelKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+          // Handle template expressions in style values
+          if (value.includes('${')) {
+            const jsValue = value.replace(/\$\{([^}]+)\}/g, '{$1}');
+            return `${camelKey}: ${jsValue}`;
+          }
           return `${camelKey}: "${value}"`;
         })
         .filter((s: any) => s !== null);
@@ -56,7 +78,7 @@ function htmlToJsx(html: string): string {
 
 // Generate React component code from HTML
 function generateReactComponent(componentName: string, htmlCode: string, props: any): string {
-  const jsx = htmlToJsx(htmlCode);
+  let jsx = htmlToJsx(htmlCode);
   
   // Extract props used in the component
   const propNames = Object.keys(props || {});
@@ -67,7 +89,264 @@ function generateReactComponent(componentName: string, htmlCode: string, props: 
   const propsInterface = propTypes ? `: { ${propTypes} }` : "";
   const propsDestructure = propNames.length > 0 ? `{ ${propNames.join(", ")} }` : "";
   
-  return `export default function ${componentName}(${propsDestructure}${propsInterface}) {
+  // Check if component needs "use client" directive (for animations, interactivity, etc.)
+  const needsClient = htmlCode.includes('data-particle') || 
+                      htmlCode.includes('testimonial-carousel') ||
+                      htmlCode.includes('viewport-animate') ||
+                      htmlCode.includes('onClick') ||
+                      htmlCode.includes('addEventListener');
+  
+  const clientDirective = needsClient ? '"use client";\n\n' : '';
+  
+  // Generate hooks and initialization code
+  let hooksCode = '';
+  let initializationCode = '';
+  let needsSectionRef = false;
+  
+  // Particle canvas initialization
+  if (htmlCode.includes('data-particle')) {
+    hooksCode += 'import { useEffect, useRef } from "react";\n';
+    initializationCode += `
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const particles: Array<{ x: number; y: number; radius: number; vx: number; vy: number; opacity: number }> = [];
+    const particleCount = 50;
+    
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        opacity: Math.random() * 0.5 + 0.2,
+      });
+    }
+    
+    let animationFrameId: number;
+    
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      particles.forEach((particle) => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        
+        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
+        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+        
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        ctx.fillStyle = \`rgba(255, 255, 255, \${particle.opacity})\`;
+        ctx.fill();
+      });
+      
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+`;
+    // Update canvas ref in JSX
+    jsx = jsx.replace(/<canvas([^>]*?)data-particle([^>]*?)>/g, '<canvas$1data-particle$2 ref={canvasRef}>');
+  }
+  
+  // Testimonial carousel initialization
+  if (htmlCode.includes('testimonial-carousel')) {
+    if (!hooksCode.includes('useEffect')) {
+      hooksCode += 'import { useEffect, useRef } from "react";\n';
+    }
+    needsSectionRef = true;
+    if (!initializationCode.includes('const sectionRef')) {
+      initializationCode = '  const sectionRef = useRef<HTMLElement>(null);\n' + initializationCode;
+    }
+    initializationCode += `
+  const currentIndexRef = useRef(0);
+  const autoSlideIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isPausedRef = useRef(false);
+  
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    
+    const container = section.querySelector('.testimonial-carousel-container');
+    if (!container) return;
+    
+    const slides = container.querySelectorAll('.testimonial-slide');
+    const dots = section.querySelectorAll('.testimonial-dot');
+    const prevBtn = section.querySelector('.testimonial-prev');
+    const nextBtn = section.querySelector('.testimonial-next');
+    
+    const autoSlide = section.getAttribute('data-auto-slide') === 'true';
+    const slideInterval = parseInt(section.getAttribute('data-slide-interval') || '5000', 10);
+    
+    const showSlide = (index: number) => {
+      currentIndexRef.current = index;
+      slides.forEach((slide: Element, i: number) => {
+        const slideEl = slide as HTMLElement;
+        if (i === index) {
+          slideEl.style.display = 'block';
+          slideEl.style.opacity = '0';
+          slideEl.style.transform = 'translateX(100px) scale(0.9)';
+          setTimeout(() => {
+            slideEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            slideEl.style.opacity = '1';
+            slideEl.style.transform = 'translateX(0) scale(1)';
+          }, 10);
+        } else {
+          slideEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+          slideEl.style.opacity = '0';
+          slideEl.style.transform = 'translateX(-100px) scale(0.9)';
+          setTimeout(() => {
+            slideEl.style.display = 'none';
+          }, 500);
+        }
+      });
+      
+      dots.forEach((dot: Element, i: number) => {
+        const dotEl = dot as HTMLElement;
+        if (i === index) {
+          dotEl.classList.add('active');
+          const accentColor = section.getAttribute('data-accent-color') || '#4f46e5';
+          dotEl.style.background = accentColor;
+        } else {
+          dotEl.classList.remove('active');
+          dotEl.style.background = '#d1d5db';
+        }
+      });
+    };
+    
+    const nextSlide = () => {
+      const next = (currentIndexRef.current + 1) % slides.length;
+      showSlide(next);
+    };
+    
+    const prevSlide = () => {
+      const prev = (currentIndexRef.current - 1 + slides.length) % slides.length;
+      showSlide(prev);
+    };
+    
+    const startAutoSlide = () => {
+      if (!autoSlide || isPausedRef.current) return;
+      autoSlideIntervalRef.current = setInterval(nextSlide, slideInterval);
+    };
+    
+    const stopAutoSlide = () => {
+      if (autoSlideIntervalRef.current) {
+        clearInterval(autoSlideIntervalRef.current);
+        autoSlideIntervalRef.current = null;
+      }
+    };
+    
+    const handleNext = () => { stopAutoSlide(); nextSlide(); startAutoSlide(); };
+    const handlePrev = () => { stopAutoSlide(); prevSlide(); startAutoSlide(); };
+    
+    if (nextBtn) nextBtn.addEventListener('click', handleNext);
+    if (prevBtn) prevBtn.addEventListener('click', handlePrev);
+    
+    dots.forEach((dot: Element, index: number) => {
+      const handleDotClick = () => {
+        stopAutoSlide();
+        showSlide(index);
+        startAutoSlide();
+      };
+      dot.addEventListener('click', handleDotClick);
+    });
+    
+    const handleMouseEnter = () => { isPausedRef.current = true; stopAutoSlide(); };
+    const handleMouseLeave = () => { isPausedRef.current = false; startAutoSlide(); };
+    
+    section.addEventListener('mouseenter', handleMouseEnter);
+    section.addEventListener('mouseleave', handleMouseLeave);
+    
+    showSlide(0);
+    startAutoSlide();
+    
+    return () => {
+      stopAutoSlide();
+      if (nextBtn) nextBtn.removeEventListener('click', handleNext);
+      if (prevBtn) prevBtn.removeEventListener('click', handlePrev);
+      section.removeEventListener('mouseenter', handleMouseEnter);
+      section.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+`;
+    // Add ref to section element
+    needsSectionRef = true;
+  }
+  
+  // Viewport animations initialization
+  if (htmlCode.includes('viewport-animate')) {
+    if (!hooksCode.includes('useEffect')) {
+      hooksCode += 'import { useEffect, useRef } from "react";\n';
+    }
+    needsSectionRef = true;
+    if (!initializationCode.includes('const sectionRef')) {
+      initializationCode = '  const sectionRef = useRef<HTMLElement>(null);\n' + initializationCode;
+    }
+    initializationCode += `
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+        }
+      });
+    }, observerOptions);
+    
+    // Only observe elements within this component
+    const animateElements = section.querySelectorAll('.viewport-animate, .viewport-animate-left, .viewport-animate-right, .viewport-animate-scale');
+    animateElements.forEach((el) => observer.observe(el));
+    
+    return () => {
+      animateElements.forEach((el) => observer.unobserve(el));
+    };
+  }, []);
+`;
+  }
+  
+  // Add section ref if needed
+  if (needsSectionRef && !jsx.includes('ref={sectionRef}')) {
+    jsx = jsx.replace(/<section([^>]*?)>/g, (match, attrs) => {
+      if (attrs.includes('ref=')) return match;
+      return `<section${attrs} ref={sectionRef}>`;
+    });
+  }
+  
+  // Clean up hooks code (remove duplicate imports)
+  const uniqueImports = [...new Set(hooksCode.split('\n').filter(line => line.trim()))].join('\n');
+  
+  return `${clientDirective}${uniqueImports ? uniqueImports + '\n\n' : ''}export default function ${componentName}(${propsDestructure}${propsInterface}) {${initializationCode}
   return (
     <>
       ${jsx}
@@ -576,6 +855,121 @@ function generateSectionsCSS(layout: any[]) {
   animation-delay: -5s;
 }
 
+/* ===== BACKGROUND ANIMATIONS ===== */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes drawWave {
+  0% { stroke-dashoffset: 1000; opacity: 0; }
+  50% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+.animate-wave {
+  animation: drawWave 3s ease-in-out infinite;
+}
+
+@keyframes particleFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(20px, -20px); }
+}
+.particle {
+  animation: particleFloat 10s ease-in-out infinite;
+}
+
+@keyframes gridMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 50px 50px; }
+}
+.animate-grid {
+  animation: gridMove 20s linear infinite;
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, 30px) scale(1.2); }
+}
+.float-orb-1 {
+  animation: floatOrb 8s ease-in-out infinite;
+}
+.float-orb-2 {
+  animation: floatOrb 10s ease-in-out infinite reverse;
+}
+
+@keyframes floatCard {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(20px, -30px) rotate(10deg); }
+}
+.float-card {
+  animation: floatCard 4s ease-in-out infinite;
+}
+
+/* ===== VIEWPORT ANIMATIONS ===== */
+.viewport-animate {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.viewport-animate.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+.viewport-animate-left {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.viewport-animate-left.in-view {
+  opacity: 1;
+  transform: translateX(0);
+}
+.viewport-animate-right {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.viewport-animate-right.in-view {
+  opacity: 1;
+  transform: translateX(0);
+}
+.viewport-animate-scale {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.viewport-animate-scale.in-view {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ===== ENHANCED HOVER EFFECTS ===== */
+.hover-scale {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-scale:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+.hover-elevate {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-elevate:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+.hover-glow-purple {
+  transition: box-shadow 0.3s ease;
+}
+.hover-glow-purple:hover {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(236, 72, 153, 0.4);
+}
+
 /* Grid Pattern */
 .grid-pattern {
   background-image: linear-gradient(rgba(168, 85, 247, 0.1) 1px, transparent 1px),
@@ -587,6 +981,14 @@ function generateSectionsCSS(layout: any[]) {
 [data-section] {
   position: relative;
   width: 100%;
+}
+
+/* Section Min-Height */
+section[data-section^="hero"] {
+  min-height: 100vh;
+}
+section {
+  min-height: 50vh;
 }
 
 `;
@@ -685,27 +1087,139 @@ function generateMainJS(layout: any[]) {
   // Add section-specific initializers for each section type
   sectionTypes.forEach((type) => {
     const sectionName = type.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
-    mainJS += `
+    
+    // Special handling for testimonials-advanced carousel
+    if (type === 'testimonialsAdvanced' || sectionName === 'testimonials-advanced') {
+      mainJS += `
+  // Initialize testimonials-advanced carousel
+  registerSection('testimonials-advanced', function(section) {
+    const container = section.querySelector('.testimonial-carousel-container');
+    if (!container) return;
+    
+    const slides = container.querySelectorAll('.testimonial-slide');
+    const dots = section.querySelectorAll('.testimonial-dot');
+    const prevBtn = section.querySelector('.testimonial-prev');
+    const nextBtn = section.querySelector('.testimonial-next');
+    let currentIndex = 0;
+    let autoSlideInterval = null;
+    const autoSlide = section.getAttribute('data-auto-slide') === 'true';
+    const slideInterval = parseInt(section.getAttribute('data-slide-interval') || '5000', 10);
+    let isPaused = false;
+    
+    function showSlide(index) {
+      slides.forEach(function(slide, i) {
+        if (i === index) {
+          slide.style.display = 'block';
+          slide.style.opacity = '0';
+          slide.style.transform = 'translateX(100px) scale(0.9)';
+          setTimeout(function() {
+            slide.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            slide.style.opacity = '1';
+            slide.style.transform = 'translateX(0) scale(1)';
+          }, 10);
+        } else {
+          slide.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+          slide.style.opacity = '0';
+          slide.style.transform = 'translateX(-100px) scale(0.9)';
+          setTimeout(function() {
+            slide.style.display = 'none';
+          }, 500);
+        }
+      });
+      
+      dots.forEach(function(dot, i) {
+        if (i === index) {
+          dot.classList.add('active');
+          const accentColor = section.getAttribute('data-accent-color') || '#4f46e5';
+          dot.style.background = accentColor;
+        } else {
+          dot.classList.remove('active');
+          dot.style.background = '#d1d5db';
+        }
+      });
+      
+      currentIndex = index;
+    }
+    
+    function nextSlide() {
+      const next = (currentIndex + 1) % slides.length;
+      showSlide(next);
+    }
+    
+    function prevSlide() {
+      const prev = (currentIndex - 1 + slides.length) % slides.length;
+      showSlide(prev);
+    }
+    
+    function startAutoSlide() {
+      if (!autoSlide || isPaused) return;
+      autoSlideInterval = setInterval(nextSlide, slideInterval);
+    }
+    
+    function stopAutoSlide() {
+      if (autoSlideInterval) {
+        clearInterval(autoSlideInterval);
+        autoSlideInterval = null;
+      }
+    }
+    
+    // Event listeners
+    if (nextBtn) nextBtn.addEventListener('click', function() { stopAutoSlide(); nextSlide(); startAutoSlide(); });
+    if (prevBtn) prevBtn.addEventListener('click', function() { stopAutoSlide(); prevSlide(); startAutoSlide(); });
+    
+    dots.forEach(function(dot, index) {
+      dot.addEventListener('click', function() {
+        stopAutoSlide();
+        showSlide(index);
+        startAutoSlide();
+      });
+    });
+    
+    // Pause on hover
+    section.addEventListener('mouseenter', function() { isPaused = true; stopAutoSlide(); });
+    section.addEventListener('mouseleave', function() { isPaused = false; startAutoSlide(); });
+    
+    // Initialize
+    showSlide(0);
+    startAutoSlide();
+  });
+`;
+    } else {
+      mainJS += `
   // Initialize ${type} sections
   registerSection('${sectionName}', function(section) {
     // ${type} section initialization
     // Add any section-specific logic here
   });
 `;
+    }
   });
 
   mainJS += `
   // Initialize on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      initAnimations();
-      initSmoothScroll();
-      initAllSections();
-    });
-  } else {
+  function initializeAll() {
     initAnimations();
     initSmoothScroll();
     initAllSections();
+    
+    // Also initialize particles if not already done
+    const particleCanvases = document.querySelectorAll('canvas[data-particle]');
+    particleCanvases.forEach(function(canvas, index) {
+      if (!canvas.id) {
+        canvas.id = 'particle-canvas-' + index;
+        // Use the initParticles function from inline script if available
+        if (typeof initParticles === 'function') {
+          initParticles(canvas.id);
+        }
+      }
+    });
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAll);
+  } else {
+    // If DOM is already loaded, wait a bit to ensure inline scripts have run
+    setTimeout(initializeAll, 100);
   }
 })();
 `;
@@ -744,7 +1258,11 @@ export function exportToHTML(layout: any[]) {
 
     const htmlExport = entry.export.html;
     if (typeof htmlExport === "function") {
-      let sectionHTML = htmlExport(block.props || {});
+      // Convert theme to color props
+      const colorProps = themeToProps(block.theme);
+      // Merge props with color props (color props override defaults)
+      const mergedProps = { ...(block.props || {}), ...colorProps };
+      let sectionHTML = htmlExport(mergedProps);
       // Add data-section attribute
       sectionHTML = addDataSectionAttribute(sectionHTML, block.type);
       bodyContent += sectionHTML + "\n";
@@ -972,11 +1490,218 @@ export function exportToHTML(layout: any[]) {
       transform: translateY(-2px);
       box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
     }
+
+    /* ===== BACKGROUND ANIMATIONS ===== */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .animate-gradient {
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+    }
+
+    @keyframes drawWave {
+      0% { stroke-dashoffset: 1000; opacity: 0; }
+      50% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 1; }
+    }
+    .animate-wave {
+      animation: drawWave 3s ease-in-out infinite;
+    }
+
+    @keyframes particleFloat {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(20px, -20px); }
+    }
+    .particle {
+      animation: particleFloat 10s ease-in-out infinite;
+    }
+
+    @keyframes gridMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 50px 50px; }
+    }
+    .animate-grid {
+      animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes floatOrb {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, 30px) scale(1.2); }
+    }
+    .float-orb-1 {
+      animation: floatOrb 8s ease-in-out infinite;
+    }
+    .float-orb-2 {
+      animation: floatOrb 10s ease-in-out infinite reverse;
+    }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(20px, -30px) rotate(10deg); }
+    }
+    .float-card {
+      animation: floatCard 4s ease-in-out infinite;
+    }
+
+    /* ===== VIEWPORT ANIMATIONS ===== */
+    .viewport-animate {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .viewport-animate.in-view {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .viewport-animate-left {
+      opacity: 0;
+      transform: translateX(-50px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .viewport-animate-left.in-view {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .viewport-animate-right {
+      opacity: 0;
+      transform: translateX(50px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .viewport-animate-right.in-view {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .viewport-animate-scale {
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .viewport-animate-scale.in-view {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ===== ENHANCED HOVER EFFECTS ===== */
+    .hover-scale {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-scale:hover {
+      transform: scale(1.05);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+    .hover-elevate {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-elevate:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    }
+    .hover-glow-purple {
+      transition: box-shadow 0.3s ease;
+    }
+    .hover-glow-purple:hover {
+      box-shadow: 0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(236, 72, 153, 0.4);
+    }
+
+    /* ===== SECTION MIN-HEIGHT ===== */
+    section[data-section^="hero"] {
+      min-height: 100vh;
+    }
+    section {
+      min-height: 50vh;
+    }
   </style>
 </head>
 <body>
 ${bodyContent}
-<script src="assets/js/main.js" defer></script>
+<script>
+  // Viewport Animation Observer
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -100px 0px'
+  };
+
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+      }
+    });
+  }, observerOptions);
+
+  // Observe all viewport-animate elements
+  document.addEventListener('DOMContentLoaded', function() {
+    const animateElements = document.querySelectorAll('.viewport-animate, .viewport-animate-left, .viewport-animate-right, .viewport-animate-scale');
+    animateElements.forEach(function(el) {
+      observer.observe(el);
+    });
+  });
+
+  // Particle Animation (for canvas-based particles)
+  function initParticles(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const particleCount = 50;
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        opacity: Math.random() * 0.5 + 0.2,
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach(particle => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+
+        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
+        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        ctx.fillStyle = \`rgba(255, 255, 255, \${particle.opacity})\`;
+        ctx.fill();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener('resize', function() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  }
+
+  // Initialize particles on load
+  document.addEventListener('DOMContentLoaded', function() {
+    const particleCanvases = document.querySelectorAll('canvas[data-particle]');
+    particleCanvases.forEach(function(canvas, index) {
+      canvas.id = 'particle-canvas-' + index;
+      initParticles(canvas.id);
+    });
+  });
+</script>
+<script src="assets/js/main.js"></script>
 </body>
 </html>`;
 }
@@ -1049,8 +1774,10 @@ export async function exportNextJsZip(layout: any[]) {
       throw new Error("No components were generated. Please check your layout.");
     }
 
-    // Add main page
-    zip.file("app/page.tsx", pageCode);
+    // Add main page (Next.js pages need "use client" if they have interactive components)
+    const needsClientPage = pageCode.includes('testimonial') || pageCode.includes('data-particle') || pageCode.includes('HeroAnimated') || pageCode.includes('HeroModern');
+    const pageCodeWithClient = needsClientPage ? '"use client";\n\n' + pageCode : pageCode;
+    zip.file("app/page.tsx", pageCodeWithClient);
     
     // Add layout file
     zip.file("app/layout.tsx", `import type { Metadata } from "next";
@@ -1163,6 +1890,7 @@ export default nextConfig;
         react: "^18.2.0",
         "react-dom": "^18.2.0",
         next: "^14.0.0",
+        "framer-motion": "^10.16.16",
       },
       devDependencies: {
         "@types/node": "^20",
@@ -1409,6 +2137,7 @@ module.exports = {
       dependencies: {
         react: "^18.2.0",
         "react-dom": "^18.2.0",
+        "framer-motion": "^10.16.16",
       },
       devDependencies: {
         "@types/react": "^18.2.0",

@@ -17,7 +17,7 @@ export default function FeaturesShowcase({
   title?: string;
   subtitle?: string;
   items?: Array<{ title: string; desc: string; icon?: string }>;
-  onEdit?: (field: string, cardIndex?: number) => void;
+  onEdit?: (field: string, cardIndex?: number, cardType?: string) => void;
   backgroundColor?: string;
   titleColor?: string;
   subtitleColor?: string;
@@ -115,31 +115,51 @@ export default function FeaturesShowcase({
 
                 {/* Icon */}
                 <motion.div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 relative z-10"
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6 relative z-10 cursor-pointer"
                   style={{
                     backgroundColor: `${cardIconColor}20`,
                   }}
                   whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
                   transition={{ duration: 0.5 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.("icon", index, "item");
+                  }}
                 >
-                  {feature.icon || "✨"}
+                  <TextEditable onClick={() => {
+                    onEdit?.("icon", index, "item");
+                  }}>
+                    {feature.icon || "✨"}
+                  </TextEditable>
                 </motion.div>
 
                 {/* Content */}
                 <div className="relative z-10">
                   <h3
-                    className="text-xl font-bold mb-3"
+                    className="text-xl font-bold mb-3 cursor-pointer hover:text-purple-600 transition-colors"
                     style={{ color: cardHeaderColor }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit?.("title", index, "item");
+                    }}
                   >
-                    <TextEditable onClick={() => onEdit?.(`items-${index}-title`, index)}>
+                    <TextEditable onClick={() => {
+                      onEdit?.("title", index, "item");
+                    }}>
                       {feature.title}
                     </TextEditable>
                   </h3>
                   <p
-                    className="text-sm leading-relaxed"
+                    className="text-sm leading-relaxed cursor-pointer hover:text-purple-600 transition-colors"
                     style={{ color: cardParagraphColor }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit?.("desc", index, "item");
+                    }}
                   >
-                    <TextEditable onClick={() => onEdit?.(`items-${index}-desc`, index)}>
+                    <TextEditable onClick={() => {
+                      onEdit?.("desc", index, "item");
+                    }}>
                       {feature.desc}
                     </TextEditable>
                   </p>

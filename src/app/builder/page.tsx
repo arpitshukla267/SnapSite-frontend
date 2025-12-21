@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense, useRef } from "react";
+import { flushSync } from "react-dom";
 import { getTemplateBySlug } from "../../lib/getTemplateBySlug";
 import { SectionRegistry } from "../../lib/sectionRegistry";
 import Sidebar from "../../components/builder/Sidebar";
@@ -502,6 +503,15 @@ function BuilderContent() {
       // Use index directly - don't filter (like PortfolioGrid)
       const cardIndex = typeof selectedCardIndex === 'number' ? selectedCardIndex : Number(selectedCardIndex) || 0;
       
+      // If field is in items-X-Y format but we're in card mode, extract the actual field name
+      let actualField = selectedField;
+      if (selectedField.startsWith("items-") && selectedField.includes("-")) {
+        const parts = selectedField.split("-");
+        if (parts.length > 2) {
+          actualField = parts[2]; // Get the actual field name (title, desc, icon)
+        }
+      }
+      
       // If array doesn't exist or is empty, get default values based on card type and index
       if (!array || !Array.isArray(array) || array.length === 0) {
         // Return default value based on card type, index, and field
@@ -520,6 +530,26 @@ function BuilderContent() {
             { name: "Emily Rodriguez", role: "Founder, StartupHub", image: "https://i.pravatar.cc/150?img=3", rating: 5, text: "Within minutes I had a beautiful, professional website up and running. Amazing!" }
           ];
           defaultCard = defaultTestimonials[cardIndex] || defaultTestimonials[0];
+        } else if (selectedCardType === "item") {
+          // For FeaturesAdvanced items, use index-specific icon defaults
+          const iconNames = ["sparkles", "zap", "shield", "rocket"];
+          const defaultTitles = [
+            "Lightning Fast Performance",
+            "Drag & Drop Builder",
+            "Responsive Design",
+            "SEO Optimized"
+          ];
+          const defaultDescs = [
+            "Optimized for speed and efficiency",
+            "Easy to use interface for everyone",
+            "Look perfect on any device",
+            "Rank higher on search engines"
+          ];
+          defaultCard = {
+            title: defaultTitles[cardIndex] || defaultTitles[0],
+            desc: defaultDescs[cardIndex] || defaultDescs[0],
+            icon: iconNames[cardIndex] || iconNames[0]
+          };
         } else {
           defaultCard = getDefaultCard(selectedCardType);
         }
@@ -548,6 +578,26 @@ function BuilderContent() {
             { name: "Emily Rodriguez", role: "Founder, StartupHub", image: "https://i.pravatar.cc/150?img=3", rating: 5, text: "Within minutes I had a beautiful, professional website up and running. Amazing!" }
           ];
           defaultCard = defaultTestimonials[cardIndex] || defaultTestimonials[0];
+        } else if (selectedCardType === "item") {
+          // For FeaturesAdvanced items, use index-specific icon defaults
+          const iconNames = ["sparkles", "zap", "shield", "rocket"];
+          const defaultTitles = [
+            "Lightning Fast Performance",
+            "Drag & Drop Builder",
+            "Responsive Design",
+            "SEO Optimized"
+          ];
+          const defaultDescs = [
+            "Optimized for speed and efficiency",
+            "Easy to use interface for everyone",
+            "Look perfect on any device",
+            "Rank higher on search engines"
+          ];
+          defaultCard = {
+            title: defaultTitles[cardIndex] || defaultTitles[0],
+            desc: defaultDescs[cardIndex] || defaultDescs[0],
+            icon: iconNames[cardIndex] || iconNames[0]
+          };
         } else {
           defaultCard = getDefaultCard(selectedCardType);
         }
@@ -559,16 +609,64 @@ function BuilderContent() {
         return defaultCard[selectedField] ?? "";
       }
       
+      // If card doesn't exist at this index, get default value for that specific card
+      if (!array[cardIndex] || typeof array[cardIndex] !== 'object') {
+        let defaultCard;
+        if (selectedCardType === "plan") {
+          const defaultPlans = [
+            { name: "Starter", price: "$9", period: "/month", features: ["5 Projects", "Basic Support", "1GB Storage", "Email Integration"], popular: false },
+            { name: "Professional", price: "$29", period: "/month", features: ["Unlimited Projects", "Priority Support", "10GB Storage", "Advanced Analytics", "Custom Domain"], popular: true },
+            { name: "Enterprise", price: "$99", period: "/month", features: ["Everything in Pro", "Dedicated Support", "Unlimited Storage", "White Label", "API Access", "SLA"], popular: false }
+          ];
+          defaultCard = defaultPlans[cardIndex] || defaultPlans[0];
+        } else if (selectedCardType === "testimonial") {
+          const defaultTestimonials = [
+            { name: "Sarah Johnson", role: "CEO, TechCorp", image: "https://i.pravatar.cc/150?img=1", rating: 5, text: "This platform has completely transformed how we build websites. Absolutely incredible!" },
+            { name: "Michael Chen", role: "Designer, CreativeStudio", image: "https://i.pravatar.cc/150?img=2", rating: 5, text: "The easiest and most powerful website builder I've ever used. Highly recommended!" },
+            { name: "Emily Rodriguez", role: "Founder, StartupHub", image: "https://i.pravatar.cc/150?img=3", rating: 5, text: "Within minutes I had a beautiful, professional website up and running. Amazing!" }
+          ];
+          defaultCard = defaultTestimonials[cardIndex] || defaultTestimonials[0];
+        } else if (selectedCardType === "item") {
+          // For FeaturesAdvanced items, use index-specific icon defaults
+          const iconNames = ["sparkles", "zap", "shield", "rocket"];
+          const defaultTitles = [
+            "Lightning Fast Performance",
+            "Drag & Drop Builder",
+            "Responsive Design",
+            "SEO Optimized"
+          ];
+          const defaultDescs = [
+            "Optimized for speed and efficiency",
+            "Easy to use interface for everyone",
+            "Look perfect on any device",
+            "Rank higher on search engines"
+          ];
+          defaultCard = {
+            title: defaultTitles[cardIndex] || defaultTitles[0],
+            desc: defaultDescs[cardIndex] || defaultDescs[0],
+            icon: iconNames[cardIndex] || iconNames[0]
+          };
+        } else {
+          defaultCard = getDefaultCard(selectedCardType);
+        }
+        
+        if (selectedCardType === "plan" && actualField.startsWith("features-")) {
+          const featureIndex = Number(actualField.split("-")[1]);
+          return defaultCard.features?.[featureIndex] ?? "";
+        }
+        return defaultCard[actualField] ?? "";
+      }
+      
       const card = array[cardIndex];
 
       if (
         selectedCardType === "plan" &&
-        selectedField.startsWith("features-")
+        actualField.startsWith("features-")
       ) {
-        const featureIndex = Number(selectedField.split("-")[1]);
+        const featureIndex = Number(actualField.split("-")[1]);
         return card.features?.[featureIndex] ?? "";
       }
-      return card[selectedField] ?? "";
+      return card[actualField] ?? "";
     }
 
     // SIMPLE ARRAY FIELDS
@@ -657,6 +755,26 @@ function BuilderContent() {
             { name: "Emily Rodriguez", role: "Founder, StartupHub", image: "https://i.pravatar.cc/150?img=3", rating: 5, text: "Within minutes I had a beautiful, professional website up and running. Amazing!" }
           ];
           defaultCard = defaultTestimonials[array.length] || defaultTestimonials[0];
+        } else if (selectedCardType === "item") {
+          // For FeaturesAdvanced items, use index-specific icon defaults
+          const iconNames = ["sparkles", "zap", "shield", "rocket"];
+          const defaultTitles = [
+            "Lightning Fast Performance",
+            "Drag & Drop Builder",
+            "Responsive Design",
+            "SEO Optimized"
+          ];
+          const defaultDescs = [
+            "Optimized for speed and efficiency",
+            "Easy to use interface for everyone",
+            "Look perfect on any device",
+            "Rank higher on search engines"
+          ];
+          defaultCard = {
+            title: defaultTitles[array.length] || defaultTitles[0],
+            desc: defaultDescs[array.length] || defaultDescs[0],
+            icon: iconNames[array.length] || iconNames[0]
+          };
         } else {
           defaultCard = getDefaultCard(selectedCardType);
         }
@@ -690,12 +808,21 @@ function BuilderContent() {
         array[cardIndex] = { ...array[cardIndex] };
       }
       
+      // Extract actual field name if using items-X-Y format
+      let actualField = selectedField!;
+      if (selectedField!.startsWith("items-") && selectedField!.includes("-")) {
+        const parts = selectedField!.split("-");
+        if (parts.length > 2) {
+          actualField = parts[2]; // Get the actual field name (title, desc, icon)
+        }
+      }
+      
       // Update ONLY the specific field - don't merge with defaults
       if (
         selectedCardType === "plan" &&
-        selectedField!.startsWith("features-")
+        actualField.startsWith("features-")
       ) {
-        const featureIndex = Number(selectedField!.split("-")[1]);
+        const featureIndex = Number(actualField.split("-")[1]);
         if (!array[cardIndex].features) {
           array[cardIndex].features = [];
         }
@@ -710,7 +837,7 @@ function BuilderContent() {
         // Directly update only the selected field - preserve all other fields
         array[cardIndex] = {
           ...array[cardIndex],
-          [selectedField!]: newValue,
+          [actualField]: newValue,
         };
       }
       
@@ -769,6 +896,8 @@ function BuilderContent() {
           features: [],
           popular: false,
         };
+      case "item":
+        return { title: "", desc: "", icon: "sparkles" };
       default:
         return {};
     }
@@ -779,12 +908,27 @@ function BuilderContent() {
     cardIndex: number | null = null,
     cardType: string | null = null
   ) => {
-    setSelectedField(fieldName);
-    setSelectedCardIndex(cardIndex);
-    setSelectedCardType(cardType);
-    setIsEditorOpen(true);
-    // Close sidebar on mobile when editing starts
-    setIsSidebarOpen(false);
+    // Auto-detect cardType and cardIndex from fieldName if using items- format
+    if (!cardType && fieldName.startsWith("items-")) {
+      const parts = fieldName.split("-");
+      if (parts.length >= 2) {
+        const detectedIndex = Number(parts[1]);
+        if (!isNaN(detectedIndex)) {
+          cardIndex = detectedIndex;
+          cardType = "item";
+        }
+      }
+    }
+    
+    // Use flushSync to force immediate state updates and avoid delays
+    flushSync(() => {
+      setSelectedField(fieldName);
+      setSelectedCardIndex(cardIndex);
+      setSelectedCardType(cardType);
+      setIsEditorOpen(true);
+      // Close sidebar on mobile when editing starts
+      setIsSidebarOpen(false);
+    });
   };
 
   const handleSave = () => {
@@ -1336,17 +1480,46 @@ function BuilderContent() {
                       />
                     </div>
                   </div>
+                ) : selectedField?.toLowerCase().includes("icon") && selectedCardType === "item" ? (
+                  <div className="space-y-3">
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block">
+                      Icon Selection
+                    </label>
+                    <select
+                      className="w-full bg-white/5 border border-white/10 px-3 py-2 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                      value={getCurrentValue() || "sparkles"}
+                      onChange={(e) => handleValueChange(e.target.value)}
+                    >
+                      <option value="sparkles">Sparkles</option>
+                      <option value="zap">Zap</option>
+                      <option value="shield">Shield</option>
+                      <option value="rocket">Rocket</option>
+                    </select>
+                    <p className="text-xs text-gray-500">
+                      Select an icon for this feature card
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     <label className="text-xs font-semibold text-gray-400 uppercase tracking-wide block">
                       Content
                     </label>
-                    <textarea
-                      className="w-full bg-white/5 border border-white/10 px-3 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all min-h-[200px] text-sm leading-relaxed placeholder-gray-500 custom-scrollbar"
-                      value={getCurrentValue()}
-                      onChange={(e) => handleValueChange(e.target.value)}
-                      placeholder="Enter your content here..."
-                    />
+                    {selectedField?.toLowerCase().includes("icon") ? (
+                      <input
+                        type="text"
+                        className="w-full bg-white/5 border border-white/10 px-3 py-2 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all placeholder-gray-500"
+                        value={getCurrentValue()}
+                        onChange={(e) => handleValueChange(e.target.value)}
+                        placeholder="Enter emoji or icon..."
+                      />
+                    ) : (
+                      <textarea
+                        className="w-full bg-white/5 border border-white/10 px-3 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all min-h-[200px] text-sm leading-relaxed placeholder-gray-500 custom-scrollbar"
+                        value={getCurrentValue()}
+                        onChange={(e) => handleValueChange(e.target.value)}
+                        placeholder="Enter your content here..."
+                      />
+                    )}
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>{getCurrentValue().length} characters</span>
                       <button className="text-purple-400 hover:text-purple-300 transition-colors">
@@ -1357,7 +1530,7 @@ function BuilderContent() {
                 )}
 
                 {/* Card Management - Show if editing a card field */}
-                {selectedCardType && selectedCardIndex !== null && (
+                {(selectedCardType === "item" || selectedCardType === "project" || selectedCardType === "plan" || selectedCardType === "testimonial" || selectedCardType === "member") && selectedCardIndex !== null && selectedCardIndex !== undefined && (
                   <div className="pt-4 border-t border-white/10 space-y-2">
                     <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
                       Card Management

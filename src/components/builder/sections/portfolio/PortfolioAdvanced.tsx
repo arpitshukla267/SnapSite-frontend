@@ -1,15 +1,15 @@
 "use client";
 import { useState, useRef } from "react";
 import TextEditable from "../../TextEditable";
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { X, ExternalLink } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { ExternalLink } from "lucide-react";
 
 export default function PortfolioAdvanced({
   title = "Our Portfolio",
   subtitle = "Showcasing our best work",
   projects = [],
   enableHoverOverlays = true,
-  enableModalPreview = true,
+  enableModalPreview = false,
   enableLazyLoading = true,
   onEdit,
   backgroundColor = "#ffffff",
@@ -23,13 +23,12 @@ export default function PortfolioAdvanced({
   enableHoverOverlays?: boolean;
   enableModalPreview?: boolean;
   enableLazyLoading?: boolean;
-  onEdit?: (field: string, cardIndex?: number) => void;
+  onEdit?: (field: string, cardIndex?: number, cardType?: string) => void;
   backgroundColor?: string;
   titleColor?: string;
   subtitleColor?: string;
   cardColors?: Array<{ backgroundColor?: string; headerColor?: string; subheaderColor?: string; paragraphColor?: string }>;
 }) {
-  const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -78,7 +77,8 @@ export default function PortfolioAdvanced({
     }
   ];
 
-  const items = projects.length > 0 ? projects : defaultProjects;
+  // Ensure items is always an array
+  const items = Array.isArray(projects) && projects.length > 0 ? projects : defaultProjects;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -151,13 +151,18 @@ export default function PortfolioAdvanced({
               return (
               <motion.div
                 key={index}
-                className="group relative overflow-hidden rounded-2xl cursor-pointer"
+                className="group relative overflow-hidden rounded-2xl"
                 variants={itemVariants}
                 whileHover={enableHoverOverlays ? { scale: 1.02 } : {}}
-                onClick={() => enableModalPreview && setSelectedProject(index)}
               >
                 {/* Image */}
-                <div className="relative aspect-[4/3] overflow-hidden bg-gray-200">
+                <div 
+                  className="relative aspect-[4/3] overflow-hidden bg-gray-200 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.("image", index, "project");
+                  }}
+                >
                   {enableLazyLoading ? (
                     <img
                       src={project.image}
@@ -185,10 +190,13 @@ export default function PortfolioAdvanced({
                         style={{ color: cardHeaderColor }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          onEdit?.("projects", index);
+                          onEdit?.("projects", index, "project");
                         }}
                       >
-                        <TextEditable onClick={() => onEdit?.("projects", index)}>
+                        <TextEditable onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit?.("projects", index, "project");
+                        }}>
                           {project.title}
                         </TextEditable>
                       </h3>
@@ -197,10 +205,13 @@ export default function PortfolioAdvanced({
                         style={{ color: cardSubheaderColor }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          onEdit?.("projects", index);
+                          onEdit?.("projects", index, "project");
                         }}
                       >
-                        <TextEditable onClick={() => onEdit?.("projects", index)}>
+                        <TextEditable onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit?.("projects", index, "project");
+                        }}>
                           {project.category}
                         </TextEditable>
                       </p>
@@ -209,10 +220,13 @@ export default function PortfolioAdvanced({
                         style={{ color: cardParagraphColor }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          onEdit?.("projects", index);
+                          onEdit?.("projects", index, "project");
                         }}
                       >
-                        <TextEditable onClick={() => onEdit?.("projects", index)}>
+                        <TextEditable onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit?.("projects", index, "project");
+                        }}>
                           {project.description}
                         </TextEditable>
                       </p>
@@ -251,77 +265,6 @@ export default function PortfolioAdvanced({
         </motion.div>
       </section>
 
-      {/* Modal Preview */}
-      <AnimatePresence>
-        {enableModalPreview && selectedProject !== null && (
-          <motion.div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedProject(null)}
-          >
-            <motion.div
-              className="relative max-w-4xl w-full bg-white rounded-2xl overflow-hidden max-h-[90vh]"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setSelectedProject(null)}
-                className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-lg"
-              >
-                <X className="w-5 h-5 text-gray-900" />
-              </button>
-
-              {/* Modal Content */}
-              <div className="overflow-y-auto max-h-[90vh]">
-                <img
-                  src={items[selectedProject].image}
-                  alt={items[selectedProject].title}
-                  className="w-full h-auto"
-                />
-                <div className="p-8">
-                  <div className="mb-2">
-                    <span 
-                      className="px-3 py-1 text-xs font-semibold rounded-full"
-                      style={{
-                        background: `var(--theme-primary, #4f46e5)`,
-                        color: "white",
-                        opacity: 0.2
-                      }}
-                    >
-                      {items[selectedProject].category}
-                    </span>
-                  </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-4">
-                    {items[selectedProject].title}
-                  </h3>
-                  <p className="text-gray-600 text-lg leading-relaxed">
-                    {items[selectedProject].description}
-                  </p>
-                  {items[selectedProject].link && (
-                    <a
-                      href={items[selectedProject].link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-6 inline-flex items-center gap-2 px-6 py-3 text-white rounded-lg font-semibold hover:scale-105 transition-transform"
-                      style={{
-                        background: `linear-gradient(to right, var(--section-primary, #4f46e5), var(--section-secondary, #ec4899))`
-                      }}
-                    >
-                      <span>View Project</span>
-                      <ExternalLink className="w-5 h-5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

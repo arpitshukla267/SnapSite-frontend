@@ -1,0 +1,101 @@
+{
+  "name": "Animated Showcase Template",
+  "sections": [
+    {
+      "type": "heroAdvanced",
+      "props": {
+        "title": "Showcase Your Work",
+        "subtitle": "Beautiful portfolios with stunning animations and interactions.",
+        "buttonText": "View Portfolio"
+      }
+    },
+    {
+      "type": "portfolioAdvanced",
+      "props": {
+        "title": "Featured Projects",
+        "subtitle": "Our latest and greatest work",
+        "projects": [
+          {
+            "title": "Creative Agency Website",
+            "category": "Web Design",
+            "image": "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&h=600&fit=crop"
+          },
+          {
+            "title": "Product Launch",
+            "category": "Marketing",
+            "image": "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&h=600&fit=crop"
+          },
+          {
+            "title": "Brand Campaign",
+            "category": "Branding",
+            "image": "https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=800&h=600&fit=crop"
+          },
+          {
+            "title": "Mobile Experience",
+            "category": "App Design",
+            "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop"
+          }
+        ]
+      }
+    },
+    {
+      "type": "featuresAdvanced",
+      "props": {
+        "title": "Why Choose Us",
+        "subtitle": "We deliver excellence",
+        "items": [
+          {
+            "title": "Smooth Animations",
+            "desc": "Fluid transitions and engaging motion design",
+            "icon": "🎬"
+          },
+          {
+            "title": "Auto-Sliding",
+            "desc": "Dynamic content that keeps visitors engaged",
+            "icon": "🔄"
+          },
+          {
+            "title": "Modal Previews",
+            "desc": "Interactive previews for better user experience",
+            "icon": "👁️"
+          }
+        ]
+      }
+    },
+    {
+      "type": "testimonialsAdvanced",
+      "props": {
+        "title": "Client Testimonials",
+        "testimonials": [
+          {
+            "name": "Sam Wilson",
+            "role": "Founder, DesignCo",
+            "image": "https://i.pravatar.cc/150?img=33",
+            "text": "The animations and interactions are absolutely stunning. Our portfolio has never looked better."
+          },
+          {
+            "name": "Casey Martinez",
+            "role": "Art Director",
+            "image": "https://i.pravatar.cc/150?img=32",
+            "text": "Professional, polished, and perfect. This template exceeded all our expectations."
+          }
+        ]
+      }
+    },
+    {
+      "type": "aboutAdvanced",
+      "props": {
+        "title": "About Our Studio",
+        "description": "We specialize in creating beautiful, animated portfolios that showcase your work in the best possible light.",
+        "image": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop"
+      }
+    },
+    {
+      "type": "footerSimple",
+      "props": {
+        "companyName": "Showcase Studio"
+      }
+    }
+  ]
+}
+

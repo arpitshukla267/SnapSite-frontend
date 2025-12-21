@@ -1161,41 +1161,84 @@ export const SectionRegistry = {
         name: "TestimonialsAdvanced",
         path: "@/components/TestimonialsAdvanced",
       },
-      html: (props) => `
-<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden" data-section="testimonials-advanced">
+      html: (props) => {
+        const testimonials = props.testimonials || props.defaultProps?.testimonials || [
+          { name: "Sarah Johnson", role: "CEO, TechStart", content: "This platform has transformed how we build websites. Incredible experience!", rating: 5 },
+          { name: "Michael Chen", role: "Designer, Creative Agency", content: "The best website builder I've ever used. Highly recommended!", rating: 5 },
+          { name: "Emily Davis", role: "Founder, StartupCo", content: "Fast, intuitive, and powerful. Everything we needed and more.", rating: 5 },
+        ];
+        const bgColor = props.backgroundColor || '#ffffff';
+        const titleColor = props.titleColor || '#0f172a';
+        const subtitleColor = props.subtitleColor || '#64748b';
+        const accentColor = props.accentColor || '#4f46e5';
+        const autoSlide = props.autoSlide !== false;
+        const slideInterval = props.slideInterval || 5000;
+        
+        return `<section class="py-24 px-6 relative overflow-hidden" style="background: ${bgColor};" data-section="testimonials-advanced" data-auto-slide="${autoSlide}" data-slide-interval="${slideInterval}">
   <div class="max-w-6xl mx-auto">
-    <div class="text-center mb-16">
-      <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+    <div class="text-center mb-16 viewport-animate">
+      <h2 class="text-4xl md:text-5xl font-extrabold mb-4" style="color: ${titleColor};">
         ${props.title || "What Our Clients Say"}
       </h2>
-      <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+      <p class="text-lg max-w-2xl mx-auto" style="color: ${subtitleColor};">
         ${props.subtitle || "Don't just take our word for it"}
       </p>
     </div>
-    <div class="relative bg-white rounded-2xl shadow-2xl p-8 md:p-12 border border-gray-100">
-      <div class="flex items-start gap-6">
-        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M14.017 21v-3c0-1.105-.895-2-2-2h-3v-7c0-1.105-.895-2-2-2H5.017v-4h8v4h-3c1.105 0 2 .895 2 2v7h3c1.105 0 2 .895 2 2v3h-2zm-10-12v-4h-2v4h2z"/></svg>
-        </div>
-        <div class="flex-1">
-          <div class="flex gap-1 mb-4">
-            ${Array(props.testimonials?.[0]?.rating || 5).fill(0).map(() => '<span class="text-yellow-400">★</span>').join('')}
-          </div>
-          <p class="text-xl text-gray-700 leading-relaxed mb-6">
-            "${props.testimonials?.[0]?.content || "Amazing experience!"}"
-          </p>
-          <div class="flex items-center gap-4">
-            <div>
-              <div class="font-semibold text-gray-900">${props.testimonials?.[0]?.name || "John Doe"}</div>
-              <div class="text-sm text-gray-500">${props.testimonials?.[0]?.role || "CEO, Company"}</div>
+    
+    <!-- Testimonials Carousel -->
+    <div class="relative">
+      <div class="testimonial-carousel-container relative">
+        ${testimonials.map((testimonial: any, index: number) => {
+          const cardBg = props.cardColors?.[index]?.backgroundColor || '#ffffff';
+          const cardHeaderColor = props.cardColors?.[index]?.headerColor || titleColor;
+          const cardSubheaderColor = props.cardColors?.[index]?.subheaderColor || subtitleColor;
+          const cardParagraphColor = props.cardColors?.[index]?.paragraphColor || subtitleColor;
+          return `
+        <div class="testimonial-slide ${index === 0 ? 'active' : ''}" data-index="${index}" style="display: ${index === 0 ? 'block' : 'none'};">
+          <div class="rounded-2xl shadow-2xl p-8 md:p-12 border border-gray-100" style="background: ${cardBg};">
+            <div class="flex items-start gap-6">
+              <div class="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0" style="background: ${accentColor};">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M14.017 21v-3c0-1.105-.895-2-2-2h-3v-7c0-1.105-.895-2-2-2H5.017v-4h8v4h-3c1.105 0 2 .895 2 2v7h3c1.105 0 2 .895 2 2v3h-2zm-10-12v-4h-2v4h2z"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="flex gap-1 mb-4">
+                  ${Array(testimonial.rating || 5).fill(0).map(() => '<span class="text-yellow-400">★</span>').join('')}
+                </div>
+                <p class="text-xl leading-relaxed mb-6" style="color: ${cardParagraphColor};">
+                  "${testimonial.content || testimonial.text || "Amazing experience!"}"
+                </p>
+                <div class="flex items-center gap-4">
+                  ${testimonial.image ? `<img src="${testimonial.image}" alt="${testimonial.name || 'User'}" class="w-12 h-12 rounded-full object-cover" />` : ''}
+                  <div>
+                    <div class="font-semibold" style="color: ${cardHeaderColor};">${testimonial.name || "John Doe"}</div>
+                    <div class="text-sm" style="color: ${cardSubheaderColor};">${testimonial.role || "CEO, Company"}</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </div>`;
+        }).join('')}
+      </div>
+      
+      <!-- Navigation Buttons -->
+      <button class="testimonial-nav testimonial-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-all z-10" aria-label="Previous">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="testimonial-nav testimonial-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-all z-10" aria-label="Next">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      
+      <!-- Dots Indicator -->
+      <div class="flex justify-center gap-2 mt-8">
+        ${testimonials.map((_: any, index: number) => `
+        <button class="testimonial-dot w-2 h-2 rounded-full transition-all ${index === 0 ? 'active' : ''}" data-index="${index}" style="background: ${index === 0 ? accentColor : '#d1d5db'};" aria-label="Go to slide ${index + 1}"></button>
+        `).join('')}
       </div>
     </div>
   </div>
-</section>
-      `,
+</section>`;
+      },
     },
   },
 
@@ -1730,16 +1773,39 @@ export const SectionRegistry = {
     export: {
       react: { name: "HeroAnimated", path: "@/components/HeroAnimated" },
       next: { name: "HeroAnimated", path: "@/components/HeroAnimated" },
-      html: (props) => `<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #4f46e5, #ec4899);" data-section="hero-animated">
+      html: (props) => {
+        const bgStyle = props.gradientColors && props.gradientColors.length >= 2
+          ? `background: linear-gradient(135deg, ${props.gradientColors.join(', ')}); background-size: 400% 400%; animation: gradientShift 15s ease infinite;`
+          : `background: ${props.backgroundColor || '#0f172a'};`;
+        const titleColor = props.titleColor || '#ffffff';
+        const subtitleColor = props.subtitleColor || '#e2e8f0';
+        const buttonBg = props.buttonBackground || '#4f46e5';
+        const buttonText = props.buttonTextColor || '#ffffff';
+        const button2Bg = props.button2Background || 'transparent';
+        const button2Text = props.button2TextColor || '#ffffff';
+        return `<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="${bgStyle}" data-section="hero-animated">
+  <!-- Particle Canvas -->
+  <canvas data-particle class="absolute inset-0 w-full h-full opacity-30" style="pointer-events: none; z-index: 1;"></canvas>
+  
+  <!-- Animated Grid Background -->
+  <div class="absolute inset-0 opacity-10 animate-grid" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 50px 50px; z-index: 1;"></div>
+  
+  <!-- Floating Orbs -->
+  <div class="absolute inset-0 overflow-hidden" style="z-index: 1;">
+    <div class="absolute w-96 h-96 rounded-full blur-3xl opacity-20 float-orb-1" style="background: radial-gradient(circle, rgba(79, 70, 229, 0.4), transparent); left: 10%; top: 20%;"></div>
+    <div class="absolute w-96 h-96 rounded-full blur-3xl opacity-20 float-orb-2" style="background: radial-gradient(circle, rgba(236, 72, 153, 0.4), transparent); right: 10%; bottom: 20%;"></div>
+  </div>
+  
   <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
-    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 text-white">${props.title || "Build Amazing Websites"}</h1>
-    <p class="text-xl md:text-2xl mb-10 max-w-3xl mx-auto text-white/90">${props.subtitle || "Create stunning, responsive websites in minutes"}</p>
-    <div class="flex flex-col sm:flex-row gap-6 justify-center">
-      <button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold bg-white text-indigo-600 shadow-2xl hover:scale-105 transition-all">${props.buttonText || "Get Started"}</button>
-      ${props.buttonText2 ? `<button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold border-2 border-white text-white">${props.buttonText2}</button>` : ''}
+    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 viewport-animate" style="color: ${titleColor};">${props.title || "Build Amazing Websites"}</h1>
+    <p class="text-xl md:text-2xl mb-10 max-w-3xl mx-auto viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">${props.subtitle || "Create stunning, responsive websites in minutes"}</p>
+    <div class="flex flex-col sm:flex-row gap-6 justify-center viewport-animate-scale" style="animation-delay: 0.4s;">
+      <button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold shadow-2xl hover-scale transition-all" style="background: ${buttonBg}; color: ${buttonText};">${props.buttonText || "Get Started"}</button>
+      ${props.buttonText2 ? `<button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold border-2 hover-scale transition-all" style="background: ${button2Bg}; color: ${button2Text}; border-color: ${button2Text};">${props.buttonText2}</button>` : ''}
     </div>
   </div>
-</section>`,
+</section>`;
+      },
     },
   },
 
@@ -1755,16 +1821,42 @@ export const SectionRegistry = {
     export: {
       react: { name: "HeroModern", path: "@/components/HeroModern" },
       next: { name: "HeroModern", path: "@/components/HeroModern" },
-      html: (props) => `<section class="relative min-h-screen flex items-center justify-center overflow-hidden bg-white" data-section="hero-modern">
+      html: (props) => {
+        const bgStyle = props.gradientColors && props.gradientColors.length >= 2
+          ? `background: linear-gradient(135deg, ${props.gradientColors.join(', ')});`
+          : `background: ${props.backgroundColor || '#ffffff'};`;
+        const titleColor = props.titleColor || '#0f172a';
+        const subtitleColor = props.subtitleColor || '#64748b';
+        const buttonBg = props.buttonBackground || '#4f46e5';
+        const buttonText = props.buttonTextColor || '#ffffff';
+        const button2Bg = props.button2Background || '#f1f5f9';
+        const button2Text = props.button2TextColor || '#0f172a';
+        const accentColor = props.accentColor || '#4f46e5';
+        return `<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="${bgStyle}" data-section="hero-modern">
+  <!-- Animated Wave Background -->
+  <div class="absolute inset-0 overflow-hidden opacity-20" style="z-index: 1;">
+    <svg class="absolute bottom-0 w-full h-full" viewBox="0 0 1440 320" preserveAspectRatio="none">
+      <path d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" fill="currentColor" class="animate-wave" style="color: ${accentColor};" />
+    </svg>
+  </div>
+  
+  <!-- Glassmorphism Floating Cards -->
+  <div class="absolute inset-0 overflow-hidden" style="z-index: 1;">
+    ${[...Array(6)].map((_, i) => `
+    <div class="absolute rounded-2xl float-card" style="width: ${80 + i * 20}px; height: ${80 + i * 20}px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); left: ${10 + i * 15}%; top: ${20 + i * 10}%; animation-delay: ${i * 0.5}s; animation-duration: ${4 + i}s;"></div>
+    `).join('')}
+  </div>
+  
   <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
-    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 text-gray-900">${props.title || "Transform Your Ideas Into Reality"}</h1>
-    <p class="text-xl md:text-2xl mb-12 max-w-3xl mx-auto text-gray-600">${props.subtitle || "The most powerful website builder"}</p>
-    <div class="flex flex-col sm:flex-row gap-6 justify-center">
-      <button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold bg-indigo-600 text-white shadow-2xl hover:scale-105 transition-all">${props.buttonText || "Start Building"}</button>
-      ${props.buttonText2 ? `<button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold border-2 border-indigo-600 text-indigo-600">${props.buttonText2}</button>` : ''}
+    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 viewport-animate" style="color: ${titleColor};">${props.title || "Transform Your Ideas Into Reality"}</h1>
+    <p class="text-xl md:text-2xl mb-12 max-w-3xl mx-auto viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">${props.subtitle || "The most powerful website builder"}</p>
+    <div class="flex flex-col sm:flex-row gap-6 justify-center viewport-animate-scale" style="animation-delay: 0.4s;">
+      <button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold shadow-2xl hover-scale transition-all" style="background: ${buttonBg}; color: ${buttonText};">${props.buttonText || "Start Building"}</button>
+      ${props.buttonText2 ? `<button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold border-2 hover-scale transition-all" style="background: ${button2Bg}; color: ${button2Text}; border-color: ${buttonBg};">${props.buttonText2}</button>` : ''}
     </div>
   </div>
-</section>`,
+</section>`;
+      },
     },
   },
 
@@ -1779,18 +1871,24 @@ export const SectionRegistry = {
     export: {
       react: { name: "AboutModern", path: "@/components/AboutModern" },
       next: { name: "AboutModern", path: "@/components/AboutModern" },
-      html: (props) => `<section class="py-24 md:py-32 px-6 bg-white" data-section="about-modern">
-  <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-    <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+      html: (props) => {
+        const bgColor = props.backgroundColor || '#ffffff';
+        const titleColor = props.titleColor || '#0f172a';
+        const subtitleColor = props.subtitleColor || '#64748b';
+        const paragraphColor = props.paragraphColor || '#64748b';
+        return `<section class="py-24 md:py-32 px-6 min-h-screen flex items-center" style="background: ${bgColor};" data-section="about-modern">
+  <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center w-full">
+    <div class="relative rounded-2xl overflow-hidden shadow-2xl hover-elevate transition-all viewport-animate-left">
       <img src="${props.image || 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800'}" alt="About" class="w-full h-auto object-cover" />
     </div>
-    <div class="space-y-6">
-      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">${props.title || "About Our Company"}</h2>
-      <p class="text-xl md:text-2xl font-semibold text-gray-600 mb-6">${props.subtitle || "We're passionate about creating amazing experiences"}</p>
-      <p class="text-lg leading-relaxed text-gray-700">${props.description || "Our team of experts is dedicated to delivering innovative solutions."}</p>
+    <div class="space-y-6 viewport-animate-right">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6" style="color: ${titleColor};">${props.title || "About Our Company"}</h2>
+      <p class="text-xl md:text-2xl font-semibold mb-6" style="color: ${subtitleColor};">${props.subtitle || "We're passionate about creating amazing experiences"}</p>
+      <p class="text-lg leading-relaxed" style="color: ${paragraphColor};">${props.description || "Our team of experts is dedicated to delivering innovative solutions."}</p>
     </div>
   </div>
-</section>`,
+</section>`;
+      },
     },
   },
 
@@ -1805,31 +1903,38 @@ export const SectionRegistry = {
     export: {
       react: { name: "AboutShowcase", path: "@/components/AboutShowcase" },
       next: { name: "AboutShowcase", path: "@/components/AboutShowcase" },
-      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="about-showcase">
-  <div class="max-w-7xl mx-auto text-center">
-    <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "We Build The Future"}</h2>
-    <p class="text-xl md:text-2xl font-semibold mb-6 max-w-3xl mx-auto text-gray-300">${props.subtitle || "Transforming ideas into digital excellence"}</p>
-    <p class="text-lg leading-relaxed max-w-2xl mx-auto text-gray-400 mb-16">${props.description || "With a team of creative minds and technical experts."}</p>
+      html: (props) => {
+        const bgColor = props.backgroundColor || '#0f172a';
+        const titleColor = props.titleColor || '#ffffff';
+        const subtitleColor = props.subtitleColor || '#cbd5e1';
+        const paragraphColor = props.paragraphColor || '#94a3b8';
+        const accentColor = props.accentColor || '#4f46e5';
+        return `<section class="py-24 md:py-32 px-6 min-h-screen flex items-center" style="background: ${bgColor};" data-section="about-showcase">
+  <div class="max-w-7xl mx-auto text-center w-full">
+    <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 viewport-animate" style="color: ${titleColor};">${props.title || "We Build The Future"}</h2>
+    <p class="text-xl md:text-2xl font-semibold mb-6 max-w-3xl mx-auto viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">${props.subtitle || "Transforming ideas into digital excellence"}</p>
+    <p class="text-lg leading-relaxed max-w-2xl mx-auto mb-16 viewport-animate" style="color: ${paragraphColor}; animation-delay: 0.4s;">${props.description || "With a team of creative minds and technical experts."}</p>
     <div class="grid md:grid-cols-4 gap-8">
-      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10">
-        <div class="text-4xl md:text-5xl font-extrabold mb-3">500+</div>
-        <div class="text-sm md:text-base text-gray-400">Projects Completed</div>
+      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10 hover-elevate transition-all viewport-animate-scale" style="border-color: ${accentColor}40;">
+        <div class="text-4xl md:text-5xl font-extrabold mb-3" style="color: ${accentColor};">500+</div>
+        <div class="text-sm md:text-base" style="color: ${paragraphColor};">Projects Completed</div>
       </div>
-      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10">
-        <div class="text-4xl md:text-5xl font-extrabold mb-3">50+</div>
-        <div class="text-sm md:text-base text-gray-400">Team Members</div>
+      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10 hover-elevate transition-all viewport-animate-scale" style="border-color: ${accentColor}40; animation-delay: 0.1s;">
+        <div class="text-4xl md:text-5xl font-extrabold mb-3" style="color: ${accentColor};">50+</div>
+        <div class="text-sm md:text-base" style="color: ${paragraphColor};">Team Members</div>
       </div>
-      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10">
-        <div class="text-4xl md:text-5xl font-extrabold mb-3">10+</div>
-        <div class="text-sm md:text-base text-gray-400">Years Experience</div>
+      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10 hover-elevate transition-all viewport-animate-scale" style="border-color: ${accentColor}40; animation-delay: 0.2s;">
+        <div class="text-4xl md:text-5xl font-extrabold mb-3" style="color: ${accentColor};">10+</div>
+        <div class="text-sm md:text-base" style="color: ${paragraphColor};">Years Experience</div>
       </div>
-      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10">
-        <div class="text-4xl md:text-5xl font-extrabold mb-3">98%</div>
-        <div class="text-sm md:text-base text-gray-400">Client Satisfaction</div>
+      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10 hover-elevate transition-all viewport-animate-scale" style="border-color: ${accentColor}40; animation-delay: 0.3s;">
+        <div class="text-4xl md:text-5xl font-extrabold mb-3" style="color: ${accentColor};">98%</div>
+        <div class="text-sm md:text-base" style="color: ${paragraphColor};">Client Satisfaction</div>
       </div>
     </div>
   </div>
-</section>`,
+</section>`;
+      },
     },
   },
 
@@ -1920,13 +2025,22 @@ export const SectionRegistry = {
     export: {
       react: { name: "CTAAnimated", path: "@/components/CTAAnimated" },
       next: { name: "CTAAnimated", path: "@/components/CTAAnimated" },
-      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center relative overflow-hidden" data-section="cta-animated">
-  <div class="max-w-4xl mx-auto relative z-10">
-    <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Ready to Get Started?"}</h2>
-    <p class="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-white/90">${props.subtitle || "Join thousands of satisfied customers"}</p>
-    <button class="px-12 py-6 rounded-2xl text-xl md:text-2xl font-bold bg-white text-indigo-600 shadow-2xl hover:scale-105 transition-all">${props.buttonText || "Start Free Trial"}</button>
+      html: (props) => {
+        const bgStyle = props.gradientColors && props.gradientColors.length >= 2
+          ? `background: linear-gradient(135deg, ${props.gradientColors.join(', ')}); background-size: 400% 400%; animation: gradientShift 15s ease infinite;`
+          : `background: ${props.backgroundColor || '#4f46e5'};`;
+        const titleColor = props.titleColor || '#ffffff';
+        const subtitleColor = props.subtitleColor || '#e2e8f0';
+        const buttonBg = props.buttonBackground || '#ffffff';
+        const buttonText = props.buttonTextColor || '#4f46e5';
+        return `<section class="py-24 md:py-32 px-6 min-h-screen flex items-center text-center relative overflow-hidden" style="${bgStyle}" data-section="cta-animated">
+  <div class="max-w-4xl mx-auto relative z-10 w-full">
+    <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 viewport-animate" style="color: ${titleColor};">${props.title || "Ready to Get Started?"}</h2>
+    <p class="text-xl md:text-2xl mb-10 max-w-2xl mx-auto viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">${props.subtitle || "Join thousands of satisfied customers"}</p>
+    <button class="px-12 py-6 rounded-2xl text-xl md:text-2xl font-bold shadow-2xl hover-scale transition-all viewport-animate-scale" style="background: ${buttonBg}; color: ${buttonText}; animation-delay: 0.4s;">${props.buttonText || "Start Free Trial"}</button>
   </div>
-</section>`,
+</section>`;
+      },
     },
   },
 
@@ -1941,15 +2055,22 @@ export const SectionRegistry = {
     export: {
       react: { name: "CTAGlass", path: "@/components/CTAGlass" },
       next: { name: "CTAGlass", path: "@/components/CTAGlass" },
-      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white text-center relative overflow-hidden" data-section="cta-glass">
-  <div class="max-w-5xl mx-auto">
-    <div class="p-12 md:p-16 rounded-3xl backdrop-blur-xl border border-white/20 shadow-2xl bg-white/10">
-      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Transform Your Business Today"}</h2>
-      <p class="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-gray-300">${props.subtitle || "Experience the power of our platform"}</p>
-      <button class="px-12 py-6 rounded-2xl text-xl md:text-2xl font-bold bg-indigo-600 text-white shadow-2xl hover:scale-105 transition-all">${props.buttonText || "Get Started Now"}</button>
+      html: (props) => {
+        const bgColor = props.backgroundColor || '#0f172a';
+        const titleColor = props.titleColor || '#ffffff';
+        const subtitleColor = props.subtitleColor || '#cbd5e1';
+        const buttonBg = props.buttonBackground || '#4f46e5';
+        const buttonText = props.buttonTextColor || '#ffffff';
+        return `<section class="py-24 md:py-32 px-6 min-h-screen flex items-center text-center relative overflow-hidden" style="background: ${bgColor};" data-section="cta-glass">
+  <div class="max-w-5xl mx-auto w-full">
+    <div class="p-12 md:p-16 rounded-3xl backdrop-blur-xl border border-white/20 shadow-2xl bg-white/10 hover-glow-purple transition-all viewport-animate-scale">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 viewport-animate" style="color: ${titleColor};">${props.title || "Transform Your Business Today"}</h2>
+      <p class="text-xl md:text-2xl mb-10 max-w-2xl mx-auto viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">${props.subtitle || "Experience the power of our platform"}</p>
+      <button class="px-12 py-6 rounded-2xl text-xl md:text-2xl font-bold shadow-2xl hover-scale transition-all viewport-animate-scale" style="background: ${buttonBg}; color: ${buttonText}; animation-delay: 0.4s;">${props.buttonText || "Get Started Now"}</button>
     </div>
   </div>
-</section>`,
+</section>`;
+      },
     },
   },
 
@@ -1964,21 +2085,36 @@ export const SectionRegistry = {
     export: {
       react: { name: "FeaturesShowcase", path: "@/components/FeaturesShowcase" },
       next: { name: "FeaturesShowcase", path: "@/components/FeaturesShowcase" },
-      html: (props) => `<section class="py-24 md:py-32 px-6 bg-white" data-section="features-showcase">
-  <div class="max-w-7xl mx-auto">
+      html: (props) => {
+        const bgColor = props.backgroundColor || '#ffffff';
+        const titleColor = props.titleColor || '#0f172a';
+        const subtitleColor = props.subtitleColor || '#64748b';
+        const accentColor = props.accentColor || '#4f46e5';
+        const items = props.items || [];
+        const cardColors = props.cardColors || [];
+        return `<section class="py-24 md:py-32 px-6 min-h-screen flex items-center" style="background: ${bgColor};" data-section="features-showcase">
+  <div class="max-w-7xl mx-auto w-full">
     <div class="text-center mb-16">
-      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-gray-900">${props.title || "Powerful Features"}</h2>
-      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-600">${props.subtitle || "Everything you need to succeed"}</p>
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 viewport-animate" style="color: ${titleColor};">${props.title || "Powerful Features"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">${props.subtitle || "Everything you need to succeed"}</p>
     </div>
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-      ${(props.items || []).map((item: any) => `<div class="p-8 rounded-2xl border-2 border-gray-200 bg-white hover:border-purple-500 transition-all">
-        <div class="w-16 h-16 rounded-xl flex items-center justify-center text-3xl mb-6 bg-purple-100">✨</div>
-        <h3 class="text-2xl font-bold mb-3 text-gray-900">${item.title || "Feature"}</h3>
-        <p class="text-gray-600">${item.desc || "Description"}</p>
-      </div>`).join('')}
+      ${items.map((item: any, index: number) => {
+        const card = cardColors[index] || {};
+        const cardBg = card.backgroundColor || '#ffffff';
+        const cardHeader = card.headerColor || titleColor;
+        const cardPara = card.paragraphColor || subtitleColor;
+        const cardIcon = card.iconColor || accentColor;
+        return `<div class="p-8 rounded-2xl border-2 hover-elevate transition-all viewport-animate-scale" style="background: ${cardBg}; border-color: ${accentColor}40; animation-delay: ${0.1 * index}s;">
+        <div class="w-16 h-16 rounded-xl flex items-center justify-center text-3xl mb-6" style="background: ${cardIcon}20;">${item.icon || '✨'}</div>
+        <h3 class="text-2xl font-bold mb-3" style="color: ${cardHeader};">${item.title || "Feature"}</h3>
+        <p style="color: ${cardPara};">${item.desc || "Description"}</p>
+      </div>`;
+      }).join('')}
     </div>
   </div>
-</section>`,
+</section>`;
+      },
     },
   },
 
@@ -1998,25 +2134,40 @@ export const SectionRegistry = {
     export: {
       react: { name: "FeaturesPremium", path: "@/components/FeaturesPremium" },
       next: { name: "FeaturesPremium", path: "@/components/FeaturesPremium" },
-      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="features-premium">
-  <div class="max-w-7xl mx-auto">
+      html: (props) => {
+        const bgColor = props.backgroundColor || '#0f172a';
+        const titleColor = props.titleColor || '#ffffff';
+        const subtitleColor = props.subtitleColor || '#cbd5e1';
+        const accentColor = props.accentColor || '#4f46e5';
+        const items = props.items || [];
+        const cardColors = props.cardColors || [];
+        return `<section class="py-24 md:py-32 px-6 min-h-screen flex items-center" style="background: ${bgColor};" data-section="features-premium">
+  <div class="max-w-7xl mx-auto w-full">
     <div class="text-center mb-16">
-      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Why Choose Us"}</h2>
-      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-300">${props.subtitle || "Discover what makes us different"}</p>
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 viewport-animate" style="color: ${titleColor};">${props.title || "Why Choose Us"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">${props.subtitle || "Discover what makes us different"}</p>
     </div>
     <div class="grid md:grid-cols-2 gap-8">
-      ${(props.items || []).map((item: any) => `<div class="p-8 rounded-3xl backdrop-blur-md border border-white/10 bg-white/5">
+      ${items.map((item: any, index: number) => {
+        const card = cardColors[index] || {};
+        const cardBg = card.backgroundColor || 'rgba(255,255,255,0.05)';
+        const cardHeader = card.headerColor || titleColor;
+        const cardPara = card.paragraphColor || subtitleColor;
+        const cardIcon = card.iconColor || accentColor;
+        return `<div class="p-8 rounded-3xl backdrop-blur-md border border-white/10 hover-elevate transition-all viewport-animate-scale" style="background: ${cardBg}; border-color: ${accentColor}40; animation-delay: ${0.1 * index}s;">
         <div class="flex items-start gap-6">
-          <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl bg-indigo-500/30">${item.icon || "🚀"}</div>
+          <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl" style="background: ${cardIcon}30;">${item.icon || "🚀"}</div>
           <div class="flex-1">
-            <h3 class="text-2xl font-bold mb-3">${item.title || "Feature"}</h3>
-            <p class="text-gray-300">${item.desc || "Description"}</p>
+            <h3 class="text-2xl font-bold mb-3" style="color: ${cardHeader};">${item.title || "Feature"}</h3>
+            <p style="color: ${cardPara};">${item.desc || "Description"}</p>
           </div>
         </div>
-      </div>`).join('')}
+      </div>`;
+      }).join('')}
     </div>
   </div>
-</section>`,
+</section>`;
+      },
     },
   },
 
@@ -2031,27 +2182,33 @@ export const SectionRegistry = {
     export: {
       react: { name: "FooterModern", path: "@/components/FooterModern" },
       next: { name: "FooterModern", path: "@/components/FooterModern" },
-      html: (props) => `<footer class="py-16 px-6 bg-gray-900 text-white" data-section="footer-modern">
-  <div class="max-w-7xl mx-auto">
+      html: (props) => {
+        const bgColor = props.backgroundColor || '#0f172a';
+        const textColor = props.textColor || '#ffffff';
+        const linkColor = props.linkColor || '#94a3b8';
+        const accentColor = props.accentColor || '#4f46e5';
+        return `<footer class="py-16 px-6 min-h-[50vh] flex items-center" style="background: ${bgColor};" data-section="footer-modern">
+  <div class="max-w-7xl mx-auto w-full">
     <div class="grid md:grid-cols-4 gap-12 mb-12">
-      <div>
-        <h3 class="text-2xl font-bold mb-4">${props.companyName || "YourBrand"}</h3>
-        <p class="text-sm text-gray-400">Building amazing digital experiences</p>
+      <div class="viewport-animate">
+        <h3 class="text-2xl font-bold mb-4" style="color: ${textColor};">${props.companyName || "YourBrand"}</h3>
+        <p class="text-sm" style="color: ${linkColor};">Building amazing digital experiences</p>
       </div>
-      <div>
-        <h4 class="font-semibold mb-4">Product</h4>
-        <ul class="space-y-3 text-sm text-gray-400">
-          <li><a href="#" class="hover:text-white transition-colors">About</a></li>
-          <li><a href="#" class="hover:text-white transition-colors">Features</a></li>
+      <div class="viewport-animate" style="animation-delay: 0.1s;">
+        <h4 class="font-semibold mb-4" style="color: ${textColor};">Product</h4>
+        <ul class="space-y-3 text-sm">
+          <li><a href="#" class="hover:opacity-80 transition-colors" style="color: ${linkColor};">About</a></li>
+          <li><a href="#" class="hover:opacity-80 transition-colors" style="color: ${linkColor};">Features</a></li>
         </ul>
       </div>
     </div>
-    <div class="h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent mb-8"></div>
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+    <div class="h-px bg-gradient-to-r from-transparent mb-8" style="background: linear-gradient(to right, transparent, ${accentColor}80, transparent);"></div>
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm" style="color: ${linkColor};">
       <p>© ${new Date().getFullYear()} ${props.companyName || "YourBrand"}. All rights reserved.</p>
     </div>
   </div>
-</footer>`,
+</footer>`;
+      },
     },
   },
 
@@ -2066,26 +2223,34 @@ export const SectionRegistry = {
     export: {
       react: { name: "FooterGradient", path: "@/components/FooterGradient" },
       next: { name: "FooterGradient", path: "@/components/FooterGradient" },
-      html: (props) => `<footer class="py-20 px-6 bg-gradient-to-br from-indigo-600 to-purple-600 text-white" data-section="footer-gradient">
-  <div class="max-w-7xl mx-auto">
+      html: (props) => {
+        const bgStyle = props.gradientColors && props.gradientColors.length >= 2
+          ? `background: linear-gradient(135deg, ${props.gradientColors.join(', ')}); background-size: 400% 400%; animation: gradientShift 15s ease infinite;`
+          : `background: ${props.backgroundColor || 'linear-gradient(135deg, #4f46e5, #7c3aed)'};`;
+        const textColor = props.textColor || '#ffffff';
+        const linkColor = props.linkColor || '#cbd5e1';
+        const accentColor = props.accentColor || '#4f46e5';
+        return `<footer class="py-20 px-6 min-h-[50vh] flex items-center" style="${bgStyle}" data-section="footer-gradient">
+  <div class="max-w-7xl mx-auto w-full">
     <div class="grid md:grid-cols-5 gap-12 mb-16">
-      <div class="md:col-span-2">
-        <h3 class="text-3xl font-bold mb-4 text-gray-900">${props.companyName || "YourBrand"}</h3>
-        <p class="text-sm mb-6 text-gray-600">Creating beautiful digital experiences.</p>
+      <div class="md:col-span-2 viewport-animate">
+        <h3 class="text-3xl font-bold mb-4" style="color: ${textColor};">${props.companyName || "YourBrand"}</h3>
+        <p class="text-sm mb-6" style="color: ${linkColor};">Creating beautiful digital experiences.</p>
       </div>
-      <div>
-        <h4 class="font-bold mb-4 text-gray-900">Product</h4>
-        <ul class="space-y-3 text-sm text-gray-600">
-          <li><a href="#" class="hover:text-indigo-600 transition-colors">About</a></li>
+      <div class="viewport-animate" style="animation-delay: 0.1s;">
+        <h4 class="font-bold mb-4" style="color: ${textColor};">Product</h4>
+        <ul class="space-y-3 text-sm">
+          <li><a href="#" class="hover:opacity-80 transition-colors" style="color: ${linkColor};">About</a></li>
         </ul>
       </div>
     </div>
-    <div class="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-8"></div>
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
+    <div class="h-px bg-gradient-to-r from-transparent mb-8" style="background: linear-gradient(to right, transparent, ${accentColor}80, transparent);"></div>
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm" style="color: ${linkColor};">
       <p>© ${new Date().getFullYear()} ${props.companyName || "YourBrand"}. All rights reserved.</p>
     </div>
   </div>
-</footer>`,
+</footer>`;
+      },
     },
   },
 

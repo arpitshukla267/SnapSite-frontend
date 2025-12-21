@@ -1,0 +1,102 @@
+{
+  "name": "Enterprise Advanced Template",
+  "sections": [
+    {
+      "type": "heroAdvanced",
+      "props": {
+        "title": "Enterprise Solutions",
+        "subtitle": "Scale your business with our advanced platform.",
+        "buttonText": "Start Free Trial",
+        "buttonText2": "Schedule Demo"
+      }
+    },
+    {
+      "type": "featuresAdvanced",
+      "props": {
+        "title": "Enterprise Features",
+        "subtitle": "Built for scale and performance",
+        "items": [
+          {
+            "title": "Professional Design",
+            "desc": "Enterprise-grade design that reflects your brand",
+            "icon": "💼"
+          },
+          {
+            "title": "Advanced Features",
+            "desc": "Powerful tools for complex business needs",
+            "icon": "⚡"
+          },
+          {
+            "title": "Enterprise Ready",
+            "desc": "Scalable infrastructure for growing businesses",
+            "icon": "🏢"
+          }
+        ]
+      }
+    },
+    {
+      "type": "aboutAdvanced",
+      "props": {
+        "title": "Trusted by Industry Leaders",
+        "description": "Join thousands of enterprises that trust our platform to power their digital presence and drive business growth.",
+        "image": "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop"
+      }
+    },
+    {
+      "type": "testimonialsAdvanced",
+      "props": {
+        "title": "What Leaders Say",
+        "testimonials": [
+          {
+            "name": "Patricia Brown",
+            "role": "VP of Marketing, Enterprise Corp",
+            "image": "https://i.pravatar.cc/150?img=47",
+            "text": "The platform has transformed how we manage our digital presence. Incredibly powerful and reliable."
+          },
+          {
+            "name": "Robert Chen",
+            "role": "CTO, TechEnterprise",
+            "image": "https://i.pravatar.cc/150?img=48",
+            "text": "Enterprise-grade features with an intuitive interface. Perfect for our large-scale operations."
+          }
+        ]
+      }
+    },
+    {
+      "type": "pricingThreeColumn",
+      "props": {
+        "title": "Enterprise Pricing",
+        "plans": [
+          {
+            "name": "Business",
+            "price": "$199",
+            "period": "/month",
+            "features": ["Up to 50 Users", "Advanced Analytics", "Priority Support", "Custom Integrations"],
+            "popular": false
+          },
+          {
+            "name": "Enterprise",
+            "price": "$499",
+            "period": "/month",
+            "features": ["Unlimited Users", "Dedicated Manager", "SLA Guarantee", "White Label", "API Access"],
+            "popular": true
+          },
+          {
+            "name": "Custom",
+            "price": "Contact",
+            "period": "Us",
+            "features": ["Everything in Enterprise", "Custom Development", "On-Premise Option", "Training"],
+            "popular": false
+          }
+        ]
+      }
+    },
+    {
+      "type": "footerSimple",
+      "props": {
+        "companyName": "Enterprise Solutions"
+      }
+    }
+  ]
+}
+
