@@ -1,7 +1,14 @@
 "use client";
 import TextEditable from "../../TextEditable";
 
-export default function PortfolioGrid({ projects = [], onEdit }) {
+export default function PortfolioGrid({ 
+  projects = [], 
+  onEdit,
+  backgroundColor = "#ffffff",
+  titleColor = "#0f172a",
+  subtitleColor = "#64748b",
+  cardColors = [],
+}) {
   const defaultProjects = [
     {
       title: "E-Commerce Platform",
@@ -44,7 +51,10 @@ export default function PortfolioGrid({ projects = [], onEdit }) {
   const items = projects.length > 0 ? projects : defaultProjects;
 
   return (
-    <section className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white">
+    <section 
+      className="py-24 px-6"
+      style={{ backgroundColor }}
+    >
       
       {/* Header */}
       <div className="max-w-7xl mx-auto text-center mb-16">
@@ -53,10 +63,16 @@ export default function PortfolioGrid({ projects = [], onEdit }) {
             🎨 Portfolio
           </span>
         </div>
-        <h2 className="text-3xl @sm:text-4xl @md:text-5xl font-extrabold text-gray-900 mb-4">
+        <h2 
+          className="text-3xl @sm:text-4xl @md:text-5xl font-extrabold mb-4"
+          style={{ color: titleColor }}
+        >
           Our Latest Work
         </h2>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p 
+          className="text-lg max-w-2xl mx-auto"
+          style={{ color: subtitleColor }}
+        >
           Explore our collection of successful projects and creative solutions
         </p>
       </div>
@@ -102,12 +118,18 @@ export default function PortfolioGrid({ projects = [], onEdit }) {
 
               {/* Content Overlay */}
               <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                <h3 className="text-2xl font-bold text-white mb-2">
+                <h3 
+                  className="text-2xl font-bold mb-2"
+                  style={{ color: cardColors[index]?.headerColor || "#ffffff" }}
+                >
                   <TextEditable onClick={() => onEdit("title", index, "project")}>
                     {project.title}
                   </TextEditable>
                 </h3>
-                <p className="text-white/90 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p 
+                  className="text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ color: cardColors[index]?.paragraphColor || "rgba(255,255,255,0.9)" }}
+                >
                   <TextEditable onClick={() => onEdit("description", index, "project")}>
                     {project.description}
                   </TextEditable>

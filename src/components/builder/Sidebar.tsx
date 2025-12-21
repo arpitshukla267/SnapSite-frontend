@@ -61,15 +61,27 @@ const Component = SectionRegistry[section.type]?.component;
 
       {/* Meta */}
       <div className="p-3 border-t border-white/5 bg-[#0b0f19]">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-1">
           <span className="text-sm font-semibold text-gray-200 group-hover:text-indigo-400 truncate transition-colors">
             {section.name}
           </span>
+          {/* Variant Badge */}
+          {SectionRegistry[section.type]?.variant && (
+            <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+              SectionRegistry[section.type]?.variant === "advanced"
+                ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border border-purple-500/30"
+                : "bg-gray-700/50 text-gray-400 border border-gray-600/30"
+            }`}>
+              {SectionRegistry[section.type]?.variant === "advanced" ? "★" : "•"}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] text-gray-500 truncate uppercase tracking-wider">
+            {section.category}
+          </p>
           <div className="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-indigo-500 transition-colors" />
         </div>
-        <p className="text-[10px] text-gray-500 mt-0.5 truncate uppercase tracking-wider">
-          {section.category}
-        </p>
       </div>
     </div>
   );

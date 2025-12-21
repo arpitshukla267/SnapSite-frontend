@@ -17,7 +17,12 @@ export default function HeroGradient({
     <section className="relative w-full py-32 overflow-hidden">
       
       {/* Animated Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 animate-gradient-slow" />
+      <div 
+        className="absolute inset-0 animate-gradient-slow"
+        style={{
+          background: `linear-gradient(135deg, var(--section-primary, #4f46e5) 0%, var(--section-secondary, #ec4899) 50%, var(--section-accent, #f59e0b) 100%)`
+        }}
+      />
       
       {/* Floating Decorative Blobs */}
       <div className="blob1" style={{ filter: 'blur(100px)' }} />

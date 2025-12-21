@@ -2,7 +2,15 @@
 import TextEditable from "../../TextEditable";
 import { useState } from "react";
 
-export default function PricingThreeColumn({ plans = [], onEdit }) {
+export default function PricingThreeColumn({ 
+  plans = [], 
+  onEdit,
+  backgroundColor = "#ffffff",
+  titleColor = "#0f172a",
+  subtitleColor = "#64748b",
+  accentColor = "#4f46e5",
+  cardColors = [],
+}) {
   const defaultPlans = [
     {
       name: "Starter",
@@ -56,7 +64,10 @@ export default function PricingThreeColumn({ plans = [], onEdit }) {
   items = items.slice(0, 3);
 
   return (
-    <section className="py-24 px-6 bg-gradient-to-br from-gray-50 to-white">
+    <section 
+      className="py-24 px-6"
+      style={{ backgroundColor }}
+    >
       
       {/* Header */}
       <div className="max-w-7xl mx-auto text-center mb-16">
@@ -65,17 +76,33 @@ export default function PricingThreeColumn({ plans = [], onEdit }) {
             💎 Pricing Plans
           </span>
         </div>
-        <h2 className="text-3xl @sm:text-4xl @md:text-5xl font-extrabold text-gray-900 mb-4">
+        <h2 
+          className="text-3xl @sm:text-4xl @md:text-5xl font-extrabold mb-4"
+          style={{ color: titleColor }}
+        >
           Choose Your Perfect Plan
         </h2>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p 
+          className="text-lg max-w-2xl mx-auto"
+          style={{ color: subtitleColor }}
+        >
           Flexible pricing options for teams of all sizes
         </p>
       </div>
 
       {/* Pricing Cards */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 @md:grid-cols-3 gap-8">
-        {items.map((plan, index) => (
+        {items.map((plan, index) => {
+          // Get card colors for this index
+          const cardColor = cardColors[index] || {};
+          const cardBg = cardColor.backgroundColor || "#ffffff";
+          const cardHeaderColor = cardColor.headerColor || (plan.popular ? "#ffffff" : titleColor);
+          const cardSubheaderColor = cardColor.subheaderColor || (plan.popular ? "rgba(255,255,255,0.8)" : subtitleColor);
+          const cardParagraphColor = cardColor.paragraphColor || subtitleColor;
+          const cardAccent = cardColor.iconColor || accentColor;
+          const headerBg = plan.popular ? accentColor : "#f9fafb";
+
+          return (
           <div
             key={index}
             className={`relative group ${plan.popular ? '@md:scale-110 z-10' : ''}`}
@@ -84,7 +111,10 @@ export default function PricingThreeColumn({ plans = [], onEdit }) {
             {/* Popular Badge */}
             {plan.popular && (
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
-                <span className="px-4 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-semibold rounded-full shadow-lg">
+                <span 
+                  className="px-4 py-1 text-white text-xs font-semibold rounded-full shadow-lg"
+                  style={{ background: accentColor }}
+                >
                   ⭐ MOST POPULAR
                 </span>
               </div>
@@ -92,23 +122,39 @@ export default function PricingThreeColumn({ plans = [], onEdit }) {
 
             {/* Card */}
             <div 
-              className={`relative bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 ${plan.popular ? 'border-2 border-indigo-500' : 'border border-gray-200'}`}
+              className={`relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 ${plan.popular ? 'border-2' : 'border'}`}
+              style={{ 
+                backgroundColor: cardBg,
+                borderColor: plan.popular ? accentColor : "#e5e7eb"
+              }}
             >
               
               {/* Gradient Header */}
-              <div className={`p-8 ${plan.popular ? 'bg-gradient-to-br from-indigo-600 to-purple-600' : 'bg-gray-50'}`}>
-                <h3 className={`text-2xl font-bold mb-2 ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
+              <div 
+                className="p-8"
+                style={{ backgroundColor: headerBg }}
+              >
+                <h3 
+                  className="text-2xl font-bold mb-2"
+                  style={{ color: cardHeaderColor }}
+                >
                   <TextEditable onClick={() => onEdit("name", index, "plan")}>
                     {plan.name}
                   </TextEditable>
                 </h3>
-                <div className={`flex items-baseline ${plan.popular ? 'text-white' : 'text-gray-900'}`}>
+                <div style={{ color: cardHeaderColor }}>
                   <span className="text-5xl font-extrabold">
                     <TextEditable onClick={() => onEdit("price", index, "plan")}>
                       {plan.price}
                     </TextEditable>
                   </span>
-                  <span className={`ml-2 ${plan.popular ? 'text-white/80' : 'text-gray-600'}`}>
+                  <span 
+                    className="ml-2"
+                    style={{ 
+                      color: cardSubheaderColor,
+                      opacity: plan.popular ? 0.8 : 1
+                    }}
+                  >
                     {plan.period}
                   </span>
                 </div>
@@ -119,10 +165,13 @@ export default function PricingThreeColumn({ plans = [], onEdit }) {
                 <ul className="space-y-4 mb-8">
                   {(plan.features || []).map((feature, fIndex) => (
                     <li key={fIndex} className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-green-600 text-sm">✓</span>
+                      <div 
+                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ backgroundColor: `${cardAccent}20` }}
+                      >
+                        <span style={{ color: cardAccent }} className="text-sm">✓</span>
                       </div>
-                      <span className="text-gray-700">
+                      <span style={{ color: cardParagraphColor }}>
                         <TextEditable onClick={() => onEdit(`features-${fIndex}`, index, "plan")}>
                           {feature}
                         </TextEditable>
@@ -132,14 +181,20 @@ export default function PricingThreeColumn({ plans = [], onEdit }) {
                 </ul>
 
                 {/* CTA Button */}
-                <button className={`w-full py-4 rounded-xl font-semibold transition-all duration-300 ${plan.popular ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl hover:scale-105' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>
+                <button 
+                  className="w-full py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                  style={{
+                    background: cardColor.buttonBackground || (plan.popular ? accentColor : "#1f2937"),
+                    color: cardColor.buttonTextColor || "#ffffff",
+                  }}
+                >
                   Get Started
                 </button>
               </div>
 
             </div>
           </div>
-        ))}
+        )})}
       </div>
 
     </section>

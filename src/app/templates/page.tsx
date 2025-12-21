@@ -102,6 +102,80 @@ const mockTemplates = [
     ],
     features: ["Bold Design", "CTA Optimized", "Lead Generation"],
   },
+  {
+    slug: "template-7",
+    name: "Premium Hero Advanced",
+    thumbnail: "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&h=600&fit=crop",
+    category: "business",
+    sections: [
+      { 
+        type: "heroAdvanced", 
+        props: { 
+          title: "Build Something Amazing",
+          subtitle: "Create stunning websites with our powerful builder. No coding required.",
+          buttonText: "Get Started",
+          buttonText2: "Learn More",
+          enableParticles: true,
+          enableGradientAnimation: true,
+          enableTextReveal: true,
+        } 
+      },
+      { type: "featuresAdvanced", props: { title: "Our Features", subtitle: "Everything you need to succeed" } },
+      { type: "aboutAdvanced", props: { title: "Who We Are", description: "We are a team of passionate creators, innovators, and problem solvers." } },
+      { type: "testimonialsAdvanced", props: { title: "What Our Clients Say" } },
+      { type: "portfolioAdvanced", props: { title: "Our Portfolio", subtitle: "Showcasing our best work" } },
+      { type: "footerSimple", props: {} },
+    ],
+    features: ["Advanced Animations", "Premium Design", "Interactive Elements"],
+  },
+  {
+    slug: "template-8",
+    name: "Animated Showcase",
+    thumbnail: "https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=800&h=600&fit=crop",
+    category: "portfolio",
+    sections: [
+      { 
+        type: "heroAdvanced", 
+        props: { 
+          title: "Showcase Your Work",
+          subtitle: "Beautiful portfolios with stunning animations and interactions.",
+          buttonText: "View Portfolio",
+          enableParticles: true,
+          enableGradientAnimation: true,
+        } 
+      },
+      { type: "portfolioAdvanced", props: { title: "Featured Projects", subtitle: "Our latest and greatest work" } },
+      { type: "featuresAdvanced", props: { title: "Why Choose Us", subtitle: "We deliver excellence" } },
+      { type: "testimonialsAdvanced", props: { title: "Client Testimonials", autoSlide: true } },
+      { type: "aboutAdvanced", props: { title: "About Our Studio", enableRevealAnimation: true } },
+      { type: "footerSimple", props: {} },
+    ],
+    features: ["Smooth Animations", "Auto-Sliding", "Modal Previews"],
+  },
+  {
+    slug: "template-9",
+    name: "Enterprise Advanced",
+    thumbnail: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
+    category: "business",
+    sections: [
+      { 
+        type: "heroAdvanced", 
+        props: { 
+          title: "Enterprise Solutions",
+          subtitle: "Scale your business with our advanced platform.",
+          buttonText: "Start Free Trial",
+          buttonText2: "Schedule Demo",
+          enableGradientAnimation: true,
+        } 
+      },
+      { type: "featuresAdvanced", props: { title: "Enterprise Features", enableSequentialReveal: true } },
+      { type: "aboutAdvanced", props: { title: "Trusted by Industry Leaders", enableHoverEffects: true } },
+      { type: "testimonialsAdvanced", props: { title: "What Leaders Say", slideInterval: 4000 } },
+      { type: "pricingThreeColumn", props: { title: "Enterprise Pricing" } },
+      { type: "footerSimple", props: {} },
+    ],
+    features: ["Professional Design", "Advanced Features", "Enterprise Ready"],
+  },
 ];
 
 export default function TemplatesPage() {

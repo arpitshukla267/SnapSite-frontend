@@ -4,38 +4,63 @@ import HeroGradient from "../components/builder/sections/hero/HeroGradient";
 import HeroSplit from "../components/builder/sections/hero/HeroSplit";
 import HeroVideo from "../components/builder/sections/hero/HeroVideo";
 import HeroCentered from "../components/builder/sections/hero/HeroCentered";
+import HeroAdvanced from "../components/builder/sections/hero/HeroAdvanced";
+import HeroAnimated from "../components/builder/sections/hero/HeroAnimated";
+import HeroModern from "../components/builder/sections/hero/HeroModern";
 
 // about
 import AboutSimple from "../components/builder/sections/about/AboutSimple";
 import AboutCentered from "../components/builder/sections/about/AboutCentered";
 import AboutImageLeft from "../components/builder/sections/about/AboutImageLeft";
+import AboutAdvanced from "../components/builder/sections/about/AboutAdvanced";
+import AboutModern from "../components/builder/sections/about/AboutModern";
+import AboutShowcase from "../components/builder/sections/about/AboutShowcase";
 
 // features
 import FeaturesGrid from "../components/builder/sections/features/FeaturesGrid";
 import FeaturesIcons from "../components/builder/sections/features/FeaturesIcons";
+import FeaturesAdvanced from "../components/builder/sections/features/FeaturesAdvanced";
+import FeaturesShowcase from "../components/builder/sections/features/FeaturesShowcase";
+import FeaturesPremium from "../components/builder/sections/features/FeaturesPremium";
 
 // cta
 import CTASimple from "../components/builder/sections/cta/CTASimple";
 import CTASplit from "../components/builder/sections/cta/CTASplit";
 import CTABoxed from "../components/builder/sections/cta/CTABoxed";
+import CTAAnimated from "../components/builder/sections/cta/CTAAnimated";
+import CTAGlass from "../components/builder/sections/cta/CTAGlass";
 
 // testimonials
 import TestimonialCards from "../components/builder/sections/testimonials/TestimonialCards";
+import TestimonialsAdvanced from "../components/builder/sections/testimonials/TestimonialsAdvanced";
+import TestimonialsModern from "../components/builder/sections/testimonials/TestimonialsModern";
+import TestimonialsShowcase from "../components/builder/sections/testimonials/TestimonialsShowcase";
 
 // pricing
 import PricingThreeColumn from "../components/builder/sections/pricing/PricingThreeColumn";
+import PricingModern from "../components/builder/sections/pricing/PricingModern";
+import PricingPremium from "../components/builder/sections/pricing/PricingPremium";
 
 // contact
 import ContactForm from "../components/builder/sections/contact/ContactForm";
+import ContactModern from "../components/builder/sections/contact/ContactModern";
+import ContactInteractive from "../components/builder/sections/contact/ContactInteractive";
 
 // footer
 import FooterSimple from "../components/builder/sections/footer/FooterSimple";
+import FooterModern from "../components/builder/sections/footer/FooterModern";
+import FooterGradient from "../components/builder/sections/footer/FooterGradient";
 
 // team
 import TeamGrid from "../components/builder/sections/team/TeamGrid";
+import TeamModern from "../components/builder/sections/team/TeamModern";
+import TeamShowcase from "../components/builder/sections/team/TeamShowcase";
 
 // portfolio
 import PortfolioGrid from "../components/builder/sections/portfolio/PortfolioGrid";
+import PortfolioAdvanced from "../components/builder/sections/portfolio/PortfolioAdvanced";
+import PortfolioShowcase from "../components/builder/sections/portfolio/PortfolioShowcase";
+import PortfolioMasonry from "../components/builder/sections/portfolio/PortfolioMasonry";
 
 export const SectionRegistry = {
   // Hero Sections
@@ -44,6 +69,12 @@ export const SectionRegistry = {
        1. BUILDER RENDERING
     ========================== */
     component: HeroMinimal,
+    defaultProps: {
+      title: "Welcome to Our Website",
+      subtitle: "Build and customize your landing page fast.",
+      buttonText: "Get Started",
+    },
+    variant: "basic",
 
     /* =========================
        2. EXPORT DEFINITIONS
@@ -111,6 +142,56 @@ export const SectionRegistry = {
         </div>
         <span>Cancel anytime</span>
       </div>
+    </div>
+  </div>
+</section>
+      `,
+    },
+  },
+
+  heroAdvanced: {
+    /* =========================
+       1. BUILDER RENDERING
+    ========================== */
+    component: HeroAdvanced,
+    defaultProps: {
+      title: "Build Something Amazing",
+      subtitle: "Create stunning websites with our powerful builder. No coding required.",
+      buttonText: "Get Started",
+      buttonText2: "Learn More",
+      enableParticles: true,
+      enableGradientAnimation: true,
+      enableTextReveal: true,
+    },
+    variant: "advanced",
+    export: {
+      react: {
+        name: "HeroAdvanced",
+        path: "@/components/HeroAdvanced",
+      },
+      next: {
+        name: "HeroAdvanced",
+        path: "@/components/HeroAdvanced",
+      },
+      html: (props) => `
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, var(--theme-primary, #4f46e5) 0%, var(--theme-secondary, #ec4899) 50%, var(--theme-accent, #60a5fa) 100%);" data-section="hero-advanced">
+  <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
+    <div class="mb-6 inline-block">
+      <span class="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-sm font-semibold">
+        ✨ Premium Experience
+      </span>
+    </div>
+    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold text-white mb-6 leading-tight">
+      ${props.title || "Build Something Amazing"}
+    </h1>
+    <p class="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-10 leading-relaxed">
+      ${props.subtitle || "Create stunning websites with our powerful builder. No coding required."}
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <button class="px-8 py-4 bg-white text-gray-900 rounded-xl text-lg font-semibold shadow-2xl hover:scale-105 transition-transform">
+        ${props.buttonText || "Get Started"}
+      </button>
+      ${props.buttonText2 ? `<button class="px-8 py-4 bg-transparent border-2 border-white/30 text-white rounded-xl text-lg font-semibold backdrop-blur-md">${props.buttonText2}</button>` : ''}
     </div>
   </div>
 </section>
@@ -481,6 +562,12 @@ export const SectionRegistry = {
        1. BUILDER RENDERING
     ========================== */
     component: AboutSimple,
+    defaultProps: {
+      title: "About Us",
+      description: "We are committed to delivering great experiences.",
+      image: "/placeholder.png",
+    },
+    variant: "basic",
 
     /* =========================
        2. EXPORT DEFINITIONS
@@ -607,6 +694,63 @@ export const SectionRegistry = {
       </p>
     </div>
 
+  </div>
+</section>
+      `,
+    },
+  },
+
+  aboutAdvanced: {
+    /* =========================
+       1. BUILDER RENDERING
+    ========================== */
+    component: AboutAdvanced,
+    defaultProps: {
+      title: "Who We Are",
+      description: "We are a team of passionate creators, innovators, and problem solvers dedicated to building amazing experiences.",
+      image: "/placeholder.png",
+      enableRevealAnimation: true,
+      enableHoverEffects: true,
+    },
+    variant: "advanced",
+    export: {
+      react: {
+        name: "AboutAdvanced",
+        path: "@/components/AboutAdvanced",
+      },
+      next: {
+        name: "AboutAdvanced",
+        path: "@/components/AboutAdvanced",
+      },
+      html: (props) => `
+<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden" data-section="about-advanced">
+  <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+    <div class="relative group">
+      <img src="${props.image || "/placeholder.png"}" alt="About" class="w-full h-auto rounded-2xl shadow-2xl object-cover" />
+    </div>
+    <div class="space-y-6">
+      <h2 class="text-4xl md:text-5xl font-bold text-gray-900">
+        ${props.title || "Who We Are"}
+      </h2>
+      <div class="w-20 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+      <p class="text-lg text-gray-600 leading-relaxed">
+        ${props.description || "We are a team of passionate creators, innovators, and problem solvers dedicated to building amazing experiences."}
+      </p>
+      <div class="grid grid-cols-3 gap-6 pt-6">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-gray-900">10K+</div>
+          <div class="text-sm text-gray-500 mt-1">Users</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-gray-900">500+</div>
+          <div class="text-sm text-gray-500 mt-1">Projects</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-gray-900">50+</div>
+          <div class="text-sm text-gray-500 mt-1">Awards</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
       `,
@@ -910,6 +1054,16 @@ export const SectionRegistry = {
        1. BUILDER RENDERING
     ========================== */
     component: TestimonialCards,
+    defaultProps: {
+      title: "What Our Customers Say",
+      subtitle: "Join thousands of satisfied users who have transformed their businesses",
+      testimonials: [
+        { name: "Sarah Johnson", role: "CEO, TechCorp", text: "This platform has completely transformed how we build websites. Absolutely incredible!", rating: 5 },
+        { name: "Michael Chen", role: "Designer, CreativeStudio", text: "The easiest and most powerful website builder I've ever used. Highly recommended!", rating: 5 },
+        { name: "Emily Rodriguez", role: "Founder, StartupHub", text: "Within minutes I had a beautiful, professional website up and running. Amazing!", rating: 5 }
+      ],
+    },
+    variant: "basic",
 
     /* =========================
        2. EXPORT DEFINITIONS
@@ -974,6 +1128,71 @@ export const SectionRegistry = {
         </div>
       </div>
     `).join('')}
+  </div>
+</section>
+      `,
+    },
+  },
+
+  testimonialsAdvanced: {
+    /* =========================
+       1. BUILDER RENDERING
+    ========================== */
+    component: TestimonialsAdvanced,
+    defaultProps: {
+      title: "What Our Clients Say",
+      subtitle: "Don't just take our word for it",
+      testimonials: [
+        { name: "Sarah Johnson", role: "CEO, TechStart", content: "This platform has transformed how we build websites. Incredible experience!", rating: 5 },
+        { name: "Michael Chen", role: "Designer, Creative Agency", content: "The best website builder I've ever used. Highly recommended!", rating: 5 },
+        { name: "Emily Davis", role: "Founder, StartupCo", content: "Fast, intuitive, and powerful. Everything we needed and more.", rating: 5 },
+      ],
+      autoSlide: true,
+      slideInterval: 5000,
+      enableDepthTransitions: true,
+    },
+    variant: "advanced",
+    export: {
+      react: {
+        name: "TestimonialsAdvanced",
+        path: "@/components/TestimonialsAdvanced",
+      },
+      next: {
+        name: "TestimonialsAdvanced",
+        path: "@/components/TestimonialsAdvanced",
+      },
+      html: (props) => `
+<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden" data-section="testimonials-advanced">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+        ${props.title || "What Our Clients Say"}
+      </h2>
+      <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+        ${props.subtitle || "Don't just take our word for it"}
+      </p>
+    </div>
+    <div class="relative bg-white rounded-2xl shadow-2xl p-8 md:p-12 border border-gray-100">
+      <div class="flex items-start gap-6">
+        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M14.017 21v-3c0-1.105-.895-2-2-2h-3v-7c0-1.105-.895-2-2-2H5.017v-4h8v4h-3c1.105 0 2 .895 2 2v7h3c1.105 0 2 .895 2 2v3h-2zm-10-12v-4h-2v4h2z"/></svg>
+        </div>
+        <div class="flex-1">
+          <div class="flex gap-1 mb-4">
+            ${Array(props.testimonials?.[0]?.rating || 5).fill(0).map(() => '<span class="text-yellow-400">★</span>').join('')}
+          </div>
+          <p class="text-xl text-gray-700 leading-relaxed mb-6">
+            "${props.testimonials?.[0]?.content || "Amazing experience!"}"
+          </p>
+          <div class="flex items-center gap-4">
+            <div>
+              <div class="font-semibold text-gray-900">${props.testimonials?.[0]?.name || "John Doe"}</div>
+              <div class="text-sm text-gray-500">${props.testimonials?.[0]?.role || "CEO, Company"}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
       `,
@@ -1073,6 +1292,14 @@ export const SectionRegistry = {
        1. BUILDER RENDERING
     ========================== */
     component: ContactForm,
+    defaultProps: {
+      title: "Get In Touch",
+      subtitle: "Have a question or want to work together? We'd love to hear from you.",
+      email: "support@example.com",
+      phone: "+1 (555) 123-4567",
+      office: "123 Business St, City, ST 12345",
+    },
+    variant: "basic",
 
     /* =========================
        2. EXPORT DEFINITIONS
@@ -1108,21 +1335,21 @@ export const SectionRegistry = {
           <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">📧</div>
           <div>
             <div class="font-semibold text-gray-900">Email</div>
-            <div class="text-gray-600">support@example.com</div>
+            <div class="text-gray-600">${props.email || "support@example.com"}</div>
           </div>
         </div>
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">📞</div>
           <div>
             <div class="font-semibold text-gray-900">Phone</div>
-            <div class="text-gray-600">+1 (555) 123-4567</div>
+            <div class="text-gray-600">${props.phone || "+1 (555) 123-4567"}</div>
           </div>
         </div>
          <div class="flex items-start gap-4">
           <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">📍</div>
           <div>
             <div class="font-semibold text-gray-900">Office</div>
-            <div class="text-gray-600">123 Business St, City, ST 12345</div>
+            <div class="text-gray-600">${props.office || "123 Business St, City, ST 12345"}</div>
           </div>
         </div>
       </div>
@@ -1292,6 +1519,16 @@ export const SectionRegistry = {
        1. BUILDER RENDERING
     ========================== */
     component: PortfolioGrid,
+    defaultProps: {
+      title: "Our Portfolio",
+      subtitle: "Showcasing our best work",
+      projects: [
+        { title: "E-Commerce Platform", category: "Web Development", image: "https://images.unsplash.com/photo-1557821552-17105176677c?w=800&h=600&fit=crop", description: "Modern online shopping experience" },
+        { title: "Brand Identity", category: "Design", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop", description: "Complete branding package for startup" },
+        { title: "Mobile App", category: "App Development", image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop", description: "iOS and Android fitness tracker" },
+      ],
+    },
+    variant: "basic",
 
     /* =========================
        2. EXPORT DEFINITIONS
@@ -1361,6 +1598,773 @@ export const SectionRegistry = {
   </div>
 </section>
       `,
+    },
+  },
+
+  portfolioAdvanced: {
+    /* =========================
+       1. BUILDER RENDERING
+    ========================== */
+    component: PortfolioAdvanced,
+    defaultProps: {
+      title: "Our Portfolio",
+      subtitle: "Showcasing our best work",
+      projects: [
+        { title: "E-Commerce Platform", category: "Web Development", image: "https://images.unsplash.com/photo-1557821552-17105176677c?w=800&h=600&fit=crop", description: "Modern online shopping experience", link: "#" },
+        { title: "Brand Identity", category: "Design", image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop", description: "Complete branding package for startup", link: "#" },
+        { title: "Mobile App", category: "App Development", image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop", description: "iOS and Android fitness tracker", link: "#" },
+      ],
+      enableHoverOverlays: true,
+      enableModalPreview: true,
+      enableLazyLoading: true,
+    },
+    variant: "advanced",
+    export: {
+      react: {
+        name: "PortfolioAdvanced",
+        path: "@/components/PortfolioAdvanced",
+      },
+      next: {
+        name: "PortfolioAdvanced",
+        path: "@/components/PortfolioAdvanced",
+      },
+      html: (props) => `
+<section class="py-24 px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden" data-section="portfolio-advanced">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+        ${props.title || "Our Portfolio"}
+      </h2>
+      <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+        ${props.subtitle || "Showcasing our best work"}
+      </p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      ${(props.projects || []).map((project: any) => `
+        <div class="group relative overflow-hidden rounded-2xl cursor-pointer">
+          <div class="relative aspect-[4/3] overflow-hidden bg-gray-200">
+            <img src="${project.image}" alt="${project.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+              <h3 class="text-white text-xl font-bold mb-2">${project.title}</h3>
+              <p class="text-white/90 text-sm mb-2">${project.category}</p>
+              <p class="text-white/80 text-sm">${project.description}</p>
+            </div>
+            <div class="absolute top-4 left-4">
+              <span class="px-3 py-1 bg-white/90 backdrop-blur-md text-gray-900 text-xs font-semibold rounded-full">${project.category}</span>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+</section>
+      `,
+    },
+  },
+
+  featuresAdvanced: {
+    /* =========================
+       1. BUILDER RENDERING
+    ========================== */
+    component: FeaturesAdvanced,
+    defaultProps: {
+      title: "Our Features",
+      subtitle: "Everything you need to succeed",
+      items: [
+        { title: "Lightning Fast Performance", desc: "Optimized for speed and efficiency" },
+        { title: "Drag & Drop Builder", desc: "Easy to use interface for everyone" },
+        { title: "Responsive Design", desc: "Look perfect on any device" },
+        { title: "SEO Optimized", desc: "Rank higher on search engines" }
+      ],
+      enableHoverEffects: true,
+      enableSequentialReveal: true,
+    },
+    variant: "advanced",
+    export: {
+      react: {
+        name: "FeaturesAdvanced",
+        path: "@/components/FeaturesAdvanced",
+      },
+      next: {
+        name: "FeaturesAdvanced",
+        path: "@/components/FeaturesAdvanced",
+      },
+      html: (props) => `
+<section class="py-24 px-6 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden" data-section="features-advanced">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+        ${props.title || "Our Features"}
+      </h2>
+      <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+        ${props.subtitle || "Everything you need to succeed"}
+      </p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      ${(props.items || []).map((item: any, index: number) => `
+        <div class="group relative p-8 bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300 h-full">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">${item.title}</h3>
+          <p class="text-gray-600 leading-relaxed">${item.desc}</p>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+</section>
+      `,
+    },
+  },
+
+  // New Advanced Sections
+  heroAnimated: {
+    component: HeroAnimated,
+    defaultProps: {
+      title: "Build Amazing Websites",
+      subtitle: "Create stunning, responsive websites in minutes",
+      buttonText: "Get Started",
+      buttonText2: "Learn More",
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "HeroAnimated", path: "@/components/HeroAnimated" },
+      next: { name: "HeroAnimated", path: "@/components/HeroAnimated" },
+      html: (props) => `<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, #4f46e5, #ec4899);" data-section="hero-animated">
+  <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
+    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 text-white">${props.title || "Build Amazing Websites"}</h1>
+    <p class="text-xl md:text-2xl mb-10 max-w-3xl mx-auto text-white/90">${props.subtitle || "Create stunning, responsive websites in minutes"}</p>
+    <div class="flex flex-col sm:flex-row gap-6 justify-center">
+      <button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold bg-white text-indigo-600 shadow-2xl hover:scale-105 transition-all">${props.buttonText || "Get Started"}</button>
+      ${props.buttonText2 ? `<button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold border-2 border-white text-white">${props.buttonText2}</button>` : ''}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  heroModern: {
+    component: HeroModern,
+    defaultProps: {
+      title: "Transform Your Ideas Into Reality",
+      subtitle: "The most powerful website builder for modern businesses",
+      buttonText: "Start Building",
+      buttonText2: "Watch Demo",
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "HeroModern", path: "@/components/HeroModern" },
+      next: { name: "HeroModern", path: "@/components/HeroModern" },
+      html: (props) => `<section class="relative min-h-screen flex items-center justify-center overflow-hidden bg-white" data-section="hero-modern">
+  <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
+    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 text-gray-900">${props.title || "Transform Your Ideas Into Reality"}</h1>
+    <p class="text-xl md:text-2xl mb-12 max-w-3xl mx-auto text-gray-600">${props.subtitle || "The most powerful website builder"}</p>
+    <div class="flex flex-col sm:flex-row gap-6 justify-center">
+      <button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold bg-indigo-600 text-white shadow-2xl hover:scale-105 transition-all">${props.buttonText || "Start Building"}</button>
+      ${props.buttonText2 ? `<button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold border-2 border-indigo-600 text-indigo-600">${props.buttonText2}</button>` : ''}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  aboutModern: {
+    component: AboutModern,
+    defaultProps: {
+      title: "About Our Company",
+      subtitle: "We're passionate about creating amazing experiences",
+      description: "Our team of experts is dedicated to delivering innovative solutions.",
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "AboutModern", path: "@/components/AboutModern" },
+      next: { name: "AboutModern", path: "@/components/AboutModern" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-white" data-section="about-modern">
+  <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+    <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+      <img src="${props.image || 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800'}" alt="About" class="w-full h-auto object-cover" />
+    </div>
+    <div class="space-y-6">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">${props.title || "About Our Company"}</h2>
+      <p class="text-xl md:text-2xl font-semibold text-gray-600 mb-6">${props.subtitle || "We're passionate about creating amazing experiences"}</p>
+      <p class="text-lg leading-relaxed text-gray-700">${props.description || "Our team of experts is dedicated to delivering innovative solutions."}</p>
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  aboutShowcase: {
+    component: AboutShowcase,
+    defaultProps: {
+      title: "We Build The Future",
+      subtitle: "Transforming ideas into digital excellence",
+      description: "With a team of creative minds and technical experts.",
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "AboutShowcase", path: "@/components/AboutShowcase" },
+      next: { name: "AboutShowcase", path: "@/components/AboutShowcase" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="about-showcase">
+  <div class="max-w-7xl mx-auto text-center">
+    <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "We Build The Future"}</h2>
+    <p class="text-xl md:text-2xl font-semibold mb-6 max-w-3xl mx-auto text-gray-300">${props.subtitle || "Transforming ideas into digital excellence"}</p>
+    <p class="text-lg leading-relaxed max-w-2xl mx-auto text-gray-400 mb-16">${props.description || "With a team of creative minds and technical experts."}</p>
+    <div class="grid md:grid-cols-4 gap-8">
+      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10">
+        <div class="text-4xl md:text-5xl font-extrabold mb-3">500+</div>
+        <div class="text-sm md:text-base text-gray-400">Projects Completed</div>
+      </div>
+      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10">
+        <div class="text-4xl md:text-5xl font-extrabold mb-3">50+</div>
+        <div class="text-sm md:text-base text-gray-400">Team Members</div>
+      </div>
+      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10">
+        <div class="text-4xl md:text-5xl font-extrabold mb-3">10+</div>
+        <div class="text-sm md:text-base text-gray-400">Years Experience</div>
+      </div>
+      <div class="text-center p-8 rounded-2xl bg-white/5 border border-white/10">
+        <div class="text-4xl md:text-5xl font-extrabold mb-3">98%</div>
+        <div class="text-sm md:text-base text-gray-400">Client Satisfaction</div>
+      </div>
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  contactModern: {
+    component: ContactModern,
+    defaultProps: {
+      title: "Get In Touch",
+      subtitle: "We'd love to hear from you",
+      email: "hello@example.com",
+      phone: "+1 (555) 123-4567",
+      address: "123 Business St, City, ST 12345",
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "ContactModern", path: "@/components/ContactModern" },
+      next: { name: "ContactModern", path: "@/components/ContactModern" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-white" data-section="contact-modern">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-gray-900">${props.title || "Get In Touch"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-600">${props.subtitle || "We'd love to hear from you"}</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-12">
+      <div class="space-y-6">
+        <div class="p-8 rounded-2xl border-2 border-gray-200 bg-white hover:border-purple-500 transition-all">
+          <div class="flex items-start gap-6">
+            <div class="w-16 h-16 rounded-xl flex items-center justify-center text-2xl bg-purple-100">📧</div>
+            <div>
+              <div class="font-semibold text-lg mb-2 text-gray-900">Email</div>
+              <div class="text-gray-600">${props.email || "hello@example.com"}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12">
+        <form class="space-y-6">
+          <input type="text" placeholder="Your Name" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 outline-none" />
+          <input type="email" placeholder="Email Address" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 outline-none" />
+          <textarea rows="5" placeholder="Message" class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 outline-none resize-none"></textarea>
+          <button class="w-full py-4 rounded-xl font-semibold bg-indigo-600 text-white shadow-lg hover:shadow-xl transition-all">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  contactInteractive: {
+    component: ContactInteractive,
+    defaultProps: {
+      title: "Let's Start a Conversation",
+      subtitle: "Reach out and we'll get back to you as soon as possible",
+      email: "contact@example.com",
+      phone: "+1 (555) 123-4567",
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "ContactInteractive", path: "@/components/ContactInteractive" },
+      next: { name: "ContactInteractive", path: "@/components/ContactInteractive" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="contact-interactive">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Let's Start a Conversation"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-300">${props.subtitle || "Reach out and we'll get back to you"}</p>
+    </div>
+    <div class="bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 p-8 md:p-12">
+      <form class="space-y-6">
+        <input type="text" placeholder="Full Name" class="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/20 focus:border-purple-500 outline-none" />
+        <input type="email" placeholder="Email" class="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/20 focus:border-purple-500 outline-none" />
+        <textarea rows="5" placeholder="Message" class="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/20 focus:border-purple-500 outline-none resize-none"></textarea>
+        <button class="w-full py-4 rounded-xl font-semibold bg-indigo-600 text-white shadow-lg hover:shadow-xl transition-all">Send Message</button>
+      </form>
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  ctaAnimated: {
+    component: CTAAnimated,
+    defaultProps: {
+      title: "Ready to Get Started?",
+      subtitle: "Join thousands of satisfied customers who have transformed their business.",
+      buttonText: "Start Free Trial",
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "CTAAnimated", path: "@/components/CTAAnimated" },
+      next: { name: "CTAAnimated", path: "@/components/CTAAnimated" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center relative overflow-hidden" data-section="cta-animated">
+  <div class="max-w-4xl mx-auto relative z-10">
+    <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Ready to Get Started?"}</h2>
+    <p class="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-white/90">${props.subtitle || "Join thousands of satisfied customers"}</p>
+    <button class="px-12 py-6 rounded-2xl text-xl md:text-2xl font-bold bg-white text-indigo-600 shadow-2xl hover:scale-105 transition-all">${props.buttonText || "Start Free Trial"}</button>
+  </div>
+</section>`,
+    },
+  },
+
+  ctaGlass: {
+    component: CTAGlass,
+    defaultProps: {
+      title: "Transform Your Business Today",
+      subtitle: "Experience the power of our platform and see why thousands of companies trust us.",
+      buttonText: "Get Started Now",
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "CTAGlass", path: "@/components/CTAGlass" },
+      next: { name: "CTAGlass", path: "@/components/CTAGlass" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white text-center relative overflow-hidden" data-section="cta-glass">
+  <div class="max-w-5xl mx-auto">
+    <div class="p-12 md:p-16 rounded-3xl backdrop-blur-xl border border-white/20 shadow-2xl bg-white/10">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Transform Your Business Today"}</h2>
+      <p class="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-gray-300">${props.subtitle || "Experience the power of our platform"}</p>
+      <button class="px-12 py-6 rounded-2xl text-xl md:text-2xl font-bold bg-indigo-600 text-white shadow-2xl hover:scale-105 transition-all">${props.buttonText || "Get Started Now"}</button>
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  featuresShowcase: {
+    component: FeaturesShowcase,
+    defaultProps: {
+      title: "Powerful Features",
+      subtitle: "Everything you need to succeed",
+      items: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "FeaturesShowcase", path: "@/components/FeaturesShowcase" },
+      next: { name: "FeaturesShowcase", path: "@/components/FeaturesShowcase" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-white" data-section="features-showcase">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-gray-900">${props.title || "Powerful Features"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-600">${props.subtitle || "Everything you need to succeed"}</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      ${(props.items || []).map((item: any) => `<div class="p-8 rounded-2xl border-2 border-gray-200 bg-white hover:border-purple-500 transition-all">
+        <div class="w-16 h-16 rounded-xl flex items-center justify-center text-3xl mb-6 bg-purple-100">✨</div>
+        <h3 class="text-2xl font-bold mb-3 text-gray-900">${item.title || "Feature"}</h3>
+        <p class="text-gray-600">${item.desc || "Description"}</p>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  featuresPremium: {
+    component: FeaturesPremium,
+    defaultProps: {
+      title: "Why Choose Us",
+      subtitle: "Discover the features that make us stand out from the competition",
+      items: [
+        { title: "Advanced Analytics", desc: "Track performance with detailed insights", icon: "📊" },
+        { title: "Custom Integrations", desc: "Connect with your favorite tools", icon: "🔌" },
+        { title: "Priority Support", desc: "Get help when you need it most", icon: "💬" },
+        { title: "Regular Updates", desc: "Always improving with new features", icon: "🔄" },
+      ],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "FeaturesPremium", path: "@/components/FeaturesPremium" },
+      next: { name: "FeaturesPremium", path: "@/components/FeaturesPremium" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="features-premium">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Why Choose Us"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-300">${props.subtitle || "Discover what makes us different"}</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-8">
+      ${(props.items || []).map((item: any) => `<div class="p-8 rounded-3xl backdrop-blur-md border border-white/10 bg-white/5">
+        <div class="flex items-start gap-6">
+          <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl bg-indigo-500/30">${item.icon || "🚀"}</div>
+          <div class="flex-1">
+            <h3 class="text-2xl font-bold mb-3">${item.title || "Feature"}</h3>
+            <p class="text-gray-300">${item.desc || "Description"}</p>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  footerModern: {
+    component: FooterModern,
+    defaultProps: {
+      companyName: "YourBrand",
+      links: [],
+      socialLinks: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "FooterModern", path: "@/components/FooterModern" },
+      next: { name: "FooterModern", path: "@/components/FooterModern" },
+      html: (props) => `<footer class="py-16 px-6 bg-gray-900 text-white" data-section="footer-modern">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid md:grid-cols-4 gap-12 mb-12">
+      <div>
+        <h3 class="text-2xl font-bold mb-4">${props.companyName || "YourBrand"}</h3>
+        <p class="text-sm text-gray-400">Building amazing digital experiences</p>
+      </div>
+      <div>
+        <h4 class="font-semibold mb-4">Product</h4>
+        <ul class="space-y-3 text-sm text-gray-400">
+          <li><a href="#" class="hover:text-white transition-colors">About</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Features</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent mb-8"></div>
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+      <p>© ${new Date().getFullYear()} ${props.companyName || "YourBrand"}. All rights reserved.</p>
+    </div>
+  </div>
+</footer>`,
+    },
+  },
+
+  footerGradient: {
+    component: FooterGradient,
+    defaultProps: {
+      companyName: "YourBrand",
+      links: [],
+      socialLinks: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "FooterGradient", path: "@/components/FooterGradient" },
+      next: { name: "FooterGradient", path: "@/components/FooterGradient" },
+      html: (props) => `<footer class="py-20 px-6 bg-gradient-to-br from-indigo-600 to-purple-600 text-white" data-section="footer-gradient">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid md:grid-cols-5 gap-12 mb-16">
+      <div class="md:col-span-2">
+        <h3 class="text-3xl font-bold mb-4 text-gray-900">${props.companyName || "YourBrand"}</h3>
+        <p class="text-sm mb-6 text-gray-600">Creating beautiful digital experiences.</p>
+      </div>
+      <div>
+        <h4 class="font-bold mb-4 text-gray-900">Product</h4>
+        <ul class="space-y-3 text-sm text-gray-600">
+          <li><a href="#" class="hover:text-indigo-600 transition-colors">About</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent mb-8"></div>
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
+      <p>© ${new Date().getFullYear()} ${props.companyName || "YourBrand"}. All rights reserved.</p>
+    </div>
+  </div>
+</footer>`,
+    },
+  },
+
+  portfolioMasonry: {
+    component: PortfolioMasonry,
+    defaultProps: {
+      title: "Our Portfolio",
+      subtitle: "Showcasing our best work",
+      projects: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "PortfolioMasonry", path: "@/components/PortfolioMasonry" },
+      next: { name: "PortfolioMasonry", path: "@/components/PortfolioMasonry" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="portfolio-masonry">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-gray-900">${props.title || "Our Portfolio"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-600">${props.subtitle || "Showcasing our best work"}</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      ${(props.projects || []).map((project: any) => `<div class="relative overflow-hidden rounded-2xl cursor-pointer group">
+        <div class="relative aspect-[4/3] overflow-hidden">
+          <img src="${project.image || 'https://images.unsplash.com/photo-1557821552-17105176677c?w=800'}" alt="${project.title || 'Project'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+            <h3 class="text-2xl font-bold mb-2 text-white">${project.title || "Project"}</h3>
+            <p class="text-sm text-white/90">${project.category || "Category"}</p>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  portfolioShowcase: {
+    component: PortfolioShowcase,
+    defaultProps: {
+      title: "Featured Projects",
+      subtitle: "Our latest and greatest work",
+      projects: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "PortfolioShowcase", path: "@/components/PortfolioShowcase" },
+      next: { name: "PortfolioShowcase", path: "@/components/PortfolioShowcase" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="portfolio-showcase">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Featured Projects"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-300">${props.subtitle || "Our latest and greatest work"}</p>
+    </div>
+    <div class="space-y-12">
+      ${(props.projects || []).map((project: any, index: number) => `<div class="grid md:grid-cols-2 gap-8 items-center">
+        <div class="relative overflow-hidden rounded-2xl ${index % 2 === 0 ? 'order-1' : 'order-2'}">
+          <img src="${project.image || 'https://images.unsplash.com/photo-1557821552-17105176677c?w=800'}" alt="${project.title || 'Project'}" class="w-full h-auto object-cover" />
+        </div>
+        <div class="${index % 2 === 0 ? 'order-2' : 'order-1'} space-y-4">
+          <div class="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-indigo-500/20 text-purple-300">${project.category || "Category"}</div>
+          <h3 class="text-3xl md:text-4xl font-bold">${project.title || "Project"}</h3>
+          <p class="text-lg text-gray-300">${project.description || "Description"}</p>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  pricingModern: {
+    component: PricingModern,
+    defaultProps: {
+      title: "Simple Pricing",
+      subtitle: "Choose the perfect plan for your needs",
+      plans: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "PricingModern", path: "@/components/PricingModern" },
+      next: { name: "PricingModern", path: "@/components/PricingModern" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-white" data-section="pricing-modern">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-gray-900">${props.title || "Simple Pricing"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-600">${props.subtitle || "Choose the perfect plan"}</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      ${(props.plans || []).map((plan: any) => `<div class="relative rounded-3xl overflow-hidden shadow-xl p-8 border ${plan.popular ? 'border-2 border-indigo-500 md:scale-110' : 'border-gray-200'} bg-white">
+        ${plan.popular ? '<div class="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20"><span class="px-4 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-full shadow-lg">⭐ MOST POPULAR</span></div>' : ''}
+        <div class="mb-8">
+          <h3 class="text-2xl font-bold mb-4 text-gray-900">${plan.name || "Plan"}</h3>
+          <div class="flex items-baseline">
+            <span class="text-5xl font-extrabold text-gray-900">${plan.price || "$9"}</span>
+            <span class="ml-2 text-lg text-gray-600">${plan.period || "/month"}</span>
+          </div>
+        </div>
+        <ul class="space-y-4 mb-8">
+          ${(plan.features || []).map((feature: string) => `<li class="flex items-start gap-3"><span class="text-indigo-600">✓</span><span class="text-gray-700">${feature}</span></li>`).join('')}
+        </ul>
+        <button class="w-full py-4 rounded-xl font-semibold bg-indigo-600 text-white shadow-lg hover:shadow-xl transition-all">Get Started</button>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  pricingPremium: {
+    component: PricingPremium,
+    defaultProps: {
+      title: "Choose Your Plan",
+      subtitle: "Flexible pricing for teams of all sizes",
+      plans: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "PricingPremium", path: "@/components/PricingPremium" },
+      next: { name: "PricingPremium", path: "@/components/PricingPremium" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="pricing-premium">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Choose Your Plan"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-300">${props.subtitle || "Flexible pricing for teams"}</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      ${(props.plans || []).map((plan: any) => `<div class="relative rounded-3xl overflow-hidden backdrop-blur-sm border border-white/10 p-8 ${plan.popular ? 'border-2 border-indigo-500 md:scale-110' : ''} bg-white/5">
+        ${plan.popular ? '<div class="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20"><span class="px-4 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-full shadow-lg">⭐ MOST POPULAR</span></div>' : ''}
+        <div class="mb-8">
+          <h3 class="text-2xl font-bold mb-4">${plan.name || "Plan"}</h3>
+          <div class="flex items-baseline">
+            <span class="text-5xl font-extrabold">${plan.price || "$9"}</span>
+            <span class="ml-2 text-lg text-gray-300">${plan.period || "/month"}</span>
+          </div>
+        </div>
+        <ul class="space-y-4 mb-8">
+          ${(plan.features || []).map((feature: string) => `<li class="flex items-start gap-3"><span class="text-indigo-400">✓</span><span class="text-gray-300">${feature}</span></li>`).join('')}
+        </ul>
+        <button class="w-full py-4 rounded-xl font-semibold bg-indigo-600 text-white shadow-lg hover:shadow-xl transition-all">Get Started</button>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  teamModern: {
+    component: TeamModern,
+    defaultProps: {
+      title: "Meet Our Team",
+      subtitle: "The talented people behind our success",
+      members: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "TeamModern", path: "@/components/TeamModern" },
+      next: { name: "TeamModern", path: "@/components/TeamModern" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-white" data-section="team-modern">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-gray-900">${props.title || "Meet Our Team"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-600">${props.subtitle || "The talented people behind our success"}</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      ${(props.members || []).map((member: any) => `<div class="bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all">
+        <div class="relative aspect-square overflow-hidden">
+          <img src="${member.image || 'https://i.pravatar.cc/300?img=11'}" alt="${member.name || 'Team Member'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+        </div>
+        <div class="p-6 text-center">
+          <h3 class="text-xl font-bold mb-1 text-gray-900">${member.name || "Name"}</h3>
+          <p class="text-indigo-600 font-medium">${member.role || "Role"}</p>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  teamShowcase: {
+    component: TeamShowcase,
+    defaultProps: {
+      title: "Our Amazing Team",
+      subtitle: "Passionate professionals dedicated to excellence",
+      members: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "TeamShowcase", path: "@/components/TeamShowcase" },
+      next: { name: "TeamShowcase", path: "@/components/TeamShowcase" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="team-showcase">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Our Amazing Team"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-300">${props.subtitle || "Passionate professionals"}</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      ${(props.members || []).map((member: any) => `<div class="rounded-2xl overflow-hidden backdrop-blur-sm border border-white/10 bg-white/5">
+        <div class="relative aspect-square overflow-hidden">
+          <img src="${member.image || 'https://i.pravatar.cc/300?img=11'}" alt="${member.name || 'Team Member'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+        </div>
+        <div class="p-6 text-center">
+          <h3 class="text-xl font-bold mb-1">${member.name || "Name"}</h3>
+          <p class="text-indigo-400 font-medium">${member.role || "Role"}</p>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  testimonialsModern: {
+    component: TestimonialsModern,
+    defaultProps: {
+      title: "What Our Clients Say",
+      subtitle: "Don't just take our word for it",
+      testimonials: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "TestimonialsModern", path: "@/components/TestimonialsModern" },
+      next: { name: "TestimonialsModern", path: "@/components/TestimonialsModern" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-white" data-section="testimonials-modern">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 text-gray-900">${props.title || "What Our Clients Say"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-600">${props.subtitle || "Don't just take our word for it"}</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      ${(props.testimonials || []).map((testimonial: any) => `<div class="p-8 rounded-2xl border-2 border-gray-200 bg-white hover:border-purple-500 transition-all">
+        <div class="flex gap-1 mb-4"><span style="color: #fbbf24">⭐⭐⭐⭐⭐</span></div>
+        <p class="text-lg leading-relaxed italic mb-6 text-gray-700">"${testimonial.content || "Amazing experience!"}"</p>
+        <div class="flex items-center gap-4">
+          <img src="${testimonial.image || 'https://i.pravatar.cc/150?img=1'}" alt="${testimonial.name || 'Client'}" class="w-14 h-14 rounded-full object-cover border-2 border-indigo-200" />
+          <div>
+            <div class="font-semibold text-gray-900">${testimonial.name || "Name"}</div>
+            <div class="text-sm text-gray-600">${testimonial.role || "Role"}</div>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
+    },
+  },
+
+  testimonialsShowcase: {
+    component: TestimonialsShowcase,
+    defaultProps: {
+      title: "Client Success Stories",
+      subtitle: "Real results from real customers",
+      testimonials: [],
+    },
+    variant: "advanced",
+    export: {
+      react: { name: "TestimonialsShowcase", path: "@/components/TestimonialsShowcase" },
+      next: { name: "TestimonialsShowcase", path: "@/components/TestimonialsShowcase" },
+      html: (props) => `<section class="py-24 md:py-32 px-6 bg-gray-900 text-white" data-section="testimonials-showcase">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6">${props.title || "Client Success Stories"}</h2>
+      <p class="text-xl md:text-2xl max-w-2xl mx-auto text-gray-300">${props.subtitle || "Real results from real customers"}</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      ${(props.testimonials || []).map((testimonial: any) => `<div class="p-8 rounded-2xl backdrop-blur-sm border border-white/10 bg-white/5">
+        <div class="flex gap-1 mb-4"><span style="color: #fbbf24">⭐⭐⭐⭐⭐</span></div>
+        <p class="text-lg leading-relaxed italic mb-6 text-gray-300">"${testimonial.content || "Amazing experience!"}"</p>
+        <div class="flex items-center gap-4">
+          <img src="${testimonial.image || 'https://i.pravatar.cc/150?img=1'}" alt="${testimonial.name || 'Client'}" class="w-14 h-14 rounded-full object-cover border-2 border-indigo-500" />
+          <div>
+            <div class="font-semibold">${testimonial.name || "Name"}</div>
+            <div class="text-sm text-gray-400">${testimonial.role || "Role"}</div>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>
+</section>`,
     },
   },
 };

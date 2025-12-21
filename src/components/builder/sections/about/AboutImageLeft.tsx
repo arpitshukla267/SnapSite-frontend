@@ -1,9 +1,20 @@
 "use client";
 import TextEditable from "../../TextEditable";
 
-export default function AboutImageLeft({ title, description, image, onEdit }) {
+export default function AboutImageLeft({ 
+  title, 
+  description, 
+  image, 
+  onEdit,
+  backgroundColor = "#ffffff",
+  titleColor = "#0f172a",
+  descriptionColor = "#64748b",
+}) {
   return (
-    <section className="py-20 px-6 bg-white">
+    <section 
+      className="py-20 px-6"
+      style={{ backgroundColor }}
+    >
       <div className="max-w-7xl mx-auto grid @md:grid-cols-2 gap-14 items-center">
 
         <div className="relative group cursor-pointer" onClick={() => onEdit("image")}>
@@ -15,13 +26,19 @@ export default function AboutImageLeft({ title, description, image, onEdit }) {
         </div>
 
         <div>
-          <h2 className="text-3xl @sm:text-4xl @md:text-5xl font-semibold text-gray-900 leading-tight">
+          <h2 
+            className="text-3xl @sm:text-4xl @md:text-5xl font-semibold leading-tight"
+            style={{ color: titleColor }}
+          >
             <TextEditable onClick={() => onEdit("title")}>
               {title || "Our Story"}
             </TextEditable>
           </h2>
 
-          <p className="mt-6 text-gray-600 text-lg leading-relaxed">
+          <p 
+            className="mt-6 text-lg leading-relaxed"
+            style={{ color: descriptionColor }}
+          >
             <TextEditable onClick={() => onEdit("description")}>
               {description || "We help people and businesses achieve their goals."}
             </TextEditable>

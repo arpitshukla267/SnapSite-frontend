@@ -3,6 +3,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Semantic Design Tokens - Initialized by ThemeProvider */
+  --bg: #ffffff;
+  --surface: #f9fafb;
+  --text-heading: #0f172a;
+  --text-subheading: #475569;
+  --text-body: #64748b;
+  --text-muted: #94a3b8;
+  --action-primary: #4f46e5;
+  --action-primary-text: #ffffff;
+  --action-secondary: #e2e8f0;
+  --action-secondary-text: #0f172a;
+  --border: #e2e8f0;
 }
 
 @theme inline {

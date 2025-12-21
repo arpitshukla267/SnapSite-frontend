@@ -1,6 +1,7 @@
 "use client";
 
 import { BiDesktop, BiMobile, BiTable, BiSave, BiShow, BiArrowBack, BiDownload } from "react-icons/bi";
+import { Palette } from "lucide-react";
 import Link from "next/link";
 import { exportNextJsZip, exportReactZip, exportHTMLZip } from "../../lib/exporter";
 
@@ -10,7 +11,8 @@ export default function BuilderHeader({
   setViewMode,
   onSave,
   onPreview,
-  onExport
+  onExport,
+  onThemeCustomize
 }: {
   templateName: string;
   viewMode: "desktop" | "tablet" | "mobile";
@@ -18,6 +20,7 @@ export default function BuilderHeader({
   onSave?: () => void;
   onPreview?: () => void;
   onExport?: () => void;
+  onThemeCustomize?: () => void;
 }) {
   return (
     <div className="h-16 fixed top-0 left-0 right-0 z-[10000]
@@ -76,6 +79,15 @@ export default function BuilderHeader({
 
       {/* Right: Actions */}
       <div className="flex items-center space-x-3 w-64 justify-end">
+        {/* Theme Customizer Button */}
+        <button
+          onClick={onThemeCustomize}
+          className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition"
+          title="Customize Theme"
+        >
+          <Palette className="w-5 h-5" />
+        </button>
+
         {/* Mobile Download/Export */}
         <button
            onClick={onExport}

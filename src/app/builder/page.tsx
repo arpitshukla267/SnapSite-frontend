@@ -1,16 +1,21 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { getTemplateBySlug } from "../../lib/getTemplateBySlug";
 import { SectionRegistry } from "../../lib/sectionRegistry";
 import Sidebar from "../../components/builder/Sidebar";
 import BuilderHeader from "../../components/builder/BuilderHeader";
-import { ImageIcon, Upload, X, Type, Trash2, ChevronUp, ChevronDown, Lock, Globe } from "lucide-react";
+import ThemeCustomizer from "../../components/builder/ThemeCustomizer";
+import ThemeCustomizerV2 from "../../components/builder/ThemeCustomizerV2";
+import { ImageIcon, Upload, X, Type, Trash2, ChevronUp, ChevronDown, Lock, Globe, Copy, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { exportHTMLZip, exportReactZip, exportNextJsZip } from "../../lib/exporter";
 import { API_BASE_URL, validateApiUrl } from "../../config";
 import toast from "react-hot-toast";
+import { getDefaultSectionTheme, type SectionTheme, applySectionTheme, applyGranularTheme } from "../../lib/sectionThemes";
+import { getDefaultGranularTheme, type GranularSectionTheme } from "../../lib/sectionThemeFields";
+import { themeToProps } from "../../lib/themeToProps";
 
 // DnD Kit Imports
 import {
@@ -71,6 +76,7 @@ function BuilderContent() {
   // Responsive State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isThemeCustomizerOpen, setIsThemeCustomizerOpen] = useState(false);
 
   // Load Template or Saved Template
   useEffect(() => {
@@ -100,10 +106,21 @@ function BuilderContent() {
             const data = await res.json();
             const template = data.template;
             if (template.layout && Array.isArray(template.layout)) {
-              const sectionsWithIds = template.layout.map((sec: any, index: number) => ({
-                ...sec,
-                id: sec.id ?? `block-${index}-${Date.now()}`,
-              }));
+              const sectionsWithIds = template.layout.map((sec: any, index: number) => {
+                if (sec.theme) {
+                  return {
+                    ...sec,
+                    id: sec.id ?? `block-${index}-${Date.now()}`,
+                    theme: sec.theme,
+                  };
+                }
+                const defaultGranularTheme = getDefaultGranularTheme(sec.type, sec.props);
+                return {
+                  ...sec,
+                  id: sec.id ?? `block-${index}-${Date.now()}`,
+                  theme: defaultGranularTheme,
+                };
+              });
               setLayout(sectionsWithIds);
               // Store in localStorage for reference
               localStorage.setItem("savedTemplate", JSON.stringify(template));
@@ -115,10 +132,21 @@ function BuilderContent() {
               try {
                 const template = JSON.parse(savedTemplateData);
                 if (template.layout && Array.isArray(template.layout)) {
-                  const sectionsWithIds = template.layout.map((sec: any, index: number) => ({
-                    ...sec,
-                    id: sec.id ?? `block-${index}-${Date.now()}`,
-                  }));
+                  const sectionsWithIds = template.layout.map((sec: any, index: number) => {
+                    if (sec.theme) {
+                      return {
+                        ...sec,
+                        id: sec.id ?? `block-${index}-${Date.now()}`,
+                        theme: sec.theme,
+                      };
+                    }
+                    const defaultGranularTheme = getDefaultGranularTheme(sec.type, sec.props);
+                    return {
+                      ...sec,
+                      id: sec.id ?? `block-${index}-${Date.now()}`,
+                      theme: defaultGranularTheme,
+                    };
+                  });
                   setLayout(sectionsWithIds);
                 }
               } catch (err) {
@@ -156,10 +184,22 @@ function BuilderContent() {
     const template = getTemplateBySlug(templateSlug);
 
     if (template && template.sections) {
-      const sectionsWithIds = template.sections.map((sec, index) => ({
-        ...sec,
-        id: sec.id ?? `block-${index}-${Date.now()}`,
-      }));
+      const sectionsWithIds = template.sections.map((sec, index) => {
+        // Try to use existing theme, or create default granular theme
+        if (sec.theme) {
+          return {
+            ...sec,
+            id: sec.id ?? `block-${index}-${Date.now()}`,
+            theme: sec.theme,
+          };
+        }
+        const defaultGranularTheme = getDefaultGranularTheme(sec.type, sec.props);
+        return {
+          ...sec,
+          id: sec.id ?? `block-${index}-${Date.now()}`,
+          theme: defaultGranularTheme,
+        };
+      });
 
       setLayout(sectionsWithIds);
     }
@@ -200,10 +240,12 @@ function BuilderContent() {
     if (active.data.current?.isSidebar) {
       const type = active.data.current.type;
       const defaultProps = active.data.current.props;
+      const defaultGranularTheme = getDefaultGranularTheme(type, defaultProps);
       const newSection = {
         id: `block-${Date.now()}`,
         type,
         props: defaultProps,
+        theme: defaultGranularTheme,
       };
 
       setLayout((prev) => {
@@ -267,6 +309,151 @@ function BuilderContent() {
       setSelectedBlockIndex(null);
       setSelectedField(null);
       setIsEditorOpen(false);
+    }
+  };
+
+  // Duplicate section
+  const handleDuplicateSection = (blockId: string) => {
+    const blockIndex = layout.findIndex((b) => b.id === blockId);
+    if (blockIndex === -1) return;
+
+    const blockToDuplicate = layout[blockIndex];
+    const duplicatedBlock = {
+      ...blockToDuplicate,
+      id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      props: {
+        ...blockToDuplicate.props,
+        // Add "(Copy)" suffix to text fields to indicate duplication
+        ...(blockToDuplicate.props.title && {
+          title: `${blockToDuplicate.props.title} (Copy)`,
+        }),
+      },
+    };
+
+    setLayout((prev) => {
+      const newLayout = [...prev];
+      newLayout.splice(blockIndex + 1, 0, duplicatedBlock);
+      return newLayout;
+    });
+
+    toast.success("Section duplicated successfully");
+  };
+
+  // Reset section to default
+  const handleResetSection = (blockId: string) => {
+    const blockIndex = layout.findIndex((b) => b.id === blockId);
+    if (blockIndex === -1) return;
+
+    const sectionType = layout[blockIndex].type;
+    const sectionEntry = SectionRegistry[sectionType];
+
+    if (!sectionEntry?.defaultProps) {
+      toast.error("No default values available for this section");
+      return;
+    }
+
+    const defaultGranularTheme = getDefaultGranularTheme(sectionType, sectionEntry.defaultProps);
+
+    setLayout((prev) => {
+      const newLayout = [...prev];
+      newLayout[blockIndex] = {
+        ...newLayout[blockIndex],
+        props: { ...sectionEntry.defaultProps },
+        theme: defaultGranularTheme, // Reset theme to default granular theme
+      };
+      return newLayout;
+    });
+
+    toast.success("Section reset to default values");
+  };
+
+  // Reset field to default
+  const handleResetField = (blockId: string, fieldName: string) => {
+    const blockIndex = layout.findIndex((b) => b.id === blockId);
+    if (blockIndex === -1) return;
+
+    const sectionType = layout[blockIndex].type;
+    const sectionEntry = SectionRegistry[sectionType];
+
+    if (!sectionEntry?.defaultProps || !sectionEntry.defaultProps[fieldName]) {
+      toast.error("No default value available for this field");
+      return;
+    }
+
+    setLayout((prev) => {
+      const newLayout = [...prev];
+      newLayout[blockIndex] = {
+        ...newLayout[blockIndex],
+        props: {
+          ...newLayout[blockIndex].props,
+          [fieldName]: sectionEntry.defaultProps[fieldName],
+        },
+      };
+      return newLayout;
+    });
+
+    toast.success(`Field "${fieldName}" reset to default`);
+  };
+
+  // Duplicate field
+  const handleDuplicateField = (blockId: string, fieldName: string) => {
+    const blockIndex = layout.findIndex((b) => b.id === blockId);
+    if (blockIndex === -1) return;
+
+    const currentValue = getCurrentValue();
+    if (currentValue === undefined || currentValue === null) {
+      toast.error("No value to duplicate");
+      return;
+    }
+
+    // Handle array fields (items, testimonials, projects, etc.)
+    if (fieldName.startsWith("items-") || fieldName.startsWith("testimonials-") || 
+        fieldName.startsWith("projects-") || fieldName.startsWith("features-") ||
+        fieldName.startsWith("plans-") || fieldName.startsWith("members-")) {
+      const parts = fieldName.split("-");
+      const arrayName = parts[0]; // items, testimonials, etc.
+      const index = Number(parts[1]);
+      
+      setLayout((prev) => {
+        const newLayout = [...prev];
+        const block = { ...newLayout[blockIndex] };
+        const props = { ...block.props };
+        
+        if (!props[arrayName]) props[arrayName] = [];
+        const array = [...props[arrayName]];
+        
+        // Duplicate the item at the specified index
+        const itemToDuplicate = array[index];
+        if (itemToDuplicate) {
+          const duplicatedItem = typeof itemToDuplicate === "object" 
+            ? { ...itemToDuplicate } 
+            : itemToDuplicate;
+          array.splice(index + 1, 0, duplicatedItem);
+        }
+        
+        props[arrayName] = array;
+        block.props = props;
+        newLayout[blockIndex] = block;
+        return newLayout;
+      });
+
+      toast.success(`Duplicated ${arrayName} item`);
+    } else {
+      // For simple fields, create a new field with "(Copy)" suffix
+      const newFieldName = `${fieldName}Copy`;
+      setLayout((prev) => {
+        const newLayout = [...prev];
+        newLayout[blockIndex] = {
+          ...newLayout[blockIndex],
+          props: {
+            ...newLayout[blockIndex].props,
+            [newFieldName]: currentValue,
+          },
+        };
+        return newLayout;
+      });
+
+      toast.success(`Field duplicated as "${newFieldName}"`);
     }
   };
 
@@ -856,6 +1043,24 @@ function BuilderContent() {
           setViewMode={setViewMode}
           onSave={handleSave}
           onExport={() => handleExport("html")}
+          onThemeCustomize={() => setIsThemeCustomizerOpen(true)}
+        />
+
+        {/* THEME CUSTOMIZER V2 - Dynamic Section Fields */}
+        <ThemeCustomizerV2
+          isOpen={isThemeCustomizerOpen}
+          onClose={() => setIsThemeCustomizerOpen(false)}
+          layout={layout}
+          selectedSectionId={selectedBlockIndex !== null ? layout[selectedBlockIndex]?.id : null}
+          onUpdateSectionTheme={(sectionId, theme) => {
+            // Deep clone theme to ensure isolation
+            const clonedTheme = JSON.parse(JSON.stringify(theme));
+            setLayout(prev => prev.map(block => 
+              block.id === sectionId 
+                ? { ...block, theme: clonedTheme }
+                : block // Keep other sections' themes unchanged
+            ));
+          }}
         />
 
         {/* BODY */}
@@ -928,6 +1133,7 @@ function BuilderContent() {
                         setSelectedBlockIndex={setSelectedBlockIndex}
                         onEdit={handleEdit}
                         onDelete={() => openDeleteModal(block.id)}
+                        onReset={() => handleResetSection(block.id)}
                         onMove={(direction) => handleMoveSection(index, direction)}
                         isFirst={index === 0}
                         isLast={index === layout.length - 1}
@@ -1003,8 +1209,22 @@ function BuilderContent() {
                       {layout[selectedBlockIndex].type}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-gray-400 mb-3">
                     Editing: Block {selectedBlockIndex + 1} of {layout.length}
+                  </div>
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (selectedField) {
+                          handleResetField(layout[selectedBlockIndex].id, selectedField);
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Reset Field
+                    </button>
                   </div>
                 </div>
 
@@ -1136,28 +1356,112 @@ function BuilderContent() {
                   </div>
                 )}
 
+                {/* Card Management - Show if editing a card field */}
+                {selectedCardType && selectedCardIndex !== null && (
+                  <div className="pt-4 border-t border-white/10 space-y-2">
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                      Card Management
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => {
+                          if (selectedBlockIndex === null || !selectedField) return;
+                          const block = layout[selectedBlockIndex];
+                          const arrayName = `${selectedCardType}s`;
+                          const array = block.props[arrayName] || [];
+                          const cardIndex = typeof selectedCardIndex === 'number' ? selectedCardIndex : Number(selectedCardIndex) || 0;
+                          
+                          if (array[cardIndex]) {
+                            const duplicatedCard = typeof array[cardIndex] === 'object' 
+                              ? { ...array[cardIndex] } 
+                              : array[cardIndex];
+                            
+                            setLayout((prev) => {
+                              const newLayout = [...prev];
+                              const newBlock = { ...newLayout[selectedBlockIndex] };
+                              const newProps = { ...newBlock.props };
+                              const newArray = [...(newProps[arrayName] || [])];
+                              newArray.splice(cardIndex + 1, 0, duplicatedCard);
+                              newProps[arrayName] = newArray;
+                              newBlock.props = newProps;
+                              newLayout[selectedBlockIndex] = newBlock;
+                              return newLayout;
+                            });
+                            
+                            toast.success(`Card duplicated`);
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+                      >
+                        <Copy className="w-3 h-3" />
+                        Duplicate Card
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (selectedBlockIndex === null || !selectedField) return;
+                          const block = layout[selectedBlockIndex];
+                          const arrayName = `${selectedCardType}s`;
+                          const array = block.props[arrayName] || [];
+                          const cardIndex = typeof selectedCardIndex === 'number' ? selectedCardIndex : Number(selectedCardIndex) || 0;
+                          
+                          if (array.length <= 1) {
+                            toast.error("Cannot delete the last card");
+                            return;
+                          }
+                          
+                          if (array[cardIndex]) {
+                            setLayout((prev) => {
+                              const newLayout = [...prev];
+                              const newBlock = { ...newLayout[selectedBlockIndex] };
+                              const newProps = { ...newBlock.props };
+                              const newArray = [...(newProps[arrayName] || [])];
+                              newArray.splice(cardIndex, 1);
+                              newProps[arrayName] = newArray;
+                              newBlock.props = newProps;
+                              newLayout[selectedBlockIndex] = newBlock;
+                              
+                              // Reset selection if deleted card was selected
+                              if (cardIndex === (typeof selectedCardIndex === 'number' ? selectedCardIndex : Number(selectedCardIndex))) {
+                                setSelectedCardIndex(null);
+                                setSelectedField(null);
+                                setIsEditorOpen(false);
+                              }
+                              
+                              return newLayout;
+                            });
+                            
+                            toast.success(`Card deleted`);
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete Card
+                      </button>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">
+                      Card {typeof selectedCardIndex === 'number' ? selectedCardIndex + 1 : Number(selectedCardIndex) + 1} of {(() => {
+                        const block = layout[selectedBlockIndex];
+                        const arrayName = `${selectedCardType}s`;
+                        return (block?.props[arrayName] || []).length;
+                      })()}
+                    </div>
+                  </div>
+                )}
+
                 {/* Quick Actions */}
                 <div className="pt-4 border-t border-white/10 space-y-2">
                   <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
                     Quick Actions
                   </div>
-                  <button className="w-full px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left text-sm text-white transition-all flex items-center justify-between group">
-                    <span>Duplicate Field</span>
-                    <svg
-                      className="w-4 h-4 text-gray-500 group-hover:text-purple-400 transition-colors"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </button>
-                  <button className="w-full px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left text-sm text-white transition-all flex items-center justify-between group">
+                  <button 
+                    onClick={() => {
+                      if (selectedField) {
+                        handleResetField(layout[selectedBlockIndex].id, selectedField);
+                      }
+                    }}
+                    className="w-full px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left text-sm text-white transition-all flex items-center justify-between group"
+                  >
                     <span>Reset to Default</span>
                     <svg
                       className="w-4 h-4 text-gray-500 group-hover:text-purple-400 transition-colors"
@@ -1629,6 +1933,124 @@ function BuilderContent() {
   );
 }
 
+// Section Theme Wrapper Component - applies theme as CSS variables
+function SectionThemeWrapper({ 
+  theme, 
+  children 
+}: { 
+  theme: GranularSectionTheme | SectionTheme; 
+  children: React.ReactNode;
+}) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (wrapperRef.current && theme) {
+      // Check if it's semantic theme tokens (has colors.background structure)
+      if ((theme as any).colors && typeof (theme as any).colors === 'object') {
+        // Semantic tokens - apply as scoped CSS variables
+        const tokens = theme as any;
+        const cssVars: Record<string, string> = {
+          "--bg": tokens.colors.background,
+          "--surface": tokens.colors.surface,
+          "--text-heading": tokens.colors.text.heading,
+          "--text-subheading": tokens.colors.text.subheading,
+          "--text-body": tokens.colors.text.body,
+          "--text-muted": tokens.colors.text.muted,
+          "--action-primary": tokens.colors.action.primary,
+          "--action-primary-text": tokens.colors.action.primaryText,
+          "--action-secondary": tokens.colors.action.secondary,
+          "--action-secondary-text": tokens.colors.action.secondaryText,
+          "--border": tokens.colors.border,
+        };
+        Object.entries(cssVars).forEach(([key, value]) => {
+          wrapperRef.current?.style.setProperty(key, value);
+        });
+      } else if ((theme as any).background && typeof (theme as any).background === 'object' && 'type' in (theme as any).background) {
+        // Granular theme - apply immediately
+        applyGranularTheme(wrapperRef.current, theme);
+      } else {
+        // Legacy theme
+        applySectionTheme(wrapperRef.current, theme as SectionTheme);
+      }
+      
+      // Force a reflow to ensure styles are applied
+      void wrapperRef.current.offsetHeight;
+    }
+  }, [JSON.stringify(theme)]);
+
+  // Apply inline styles for immediate effect
+  const getInlineStyle = (): React.CSSProperties => {
+    if (!theme) return {};
+    
+    // Check if semantic theme tokens
+    if ((theme as any).colors && typeof (theme as any).colors === 'object') {
+      const tokens = theme as any;
+      return {
+        "--bg": tokens.colors.background,
+        "--surface": tokens.colors.surface,
+        "--text-heading": tokens.colors.text.heading,
+        "--text-subheading": tokens.colors.text.subheading,
+        "--text-body": tokens.colors.text.body,
+        "--text-muted": tokens.colors.text.muted,
+        "--action-primary": tokens.colors.action.primary,
+        "--action-primary-text": tokens.colors.action.primaryText,
+        "--action-secondary": tokens.colors.action.secondary,
+        "--action-secondary-text": tokens.colors.action.secondaryText,
+        "--border": tokens.colors.border,
+      } as React.CSSProperties;
+    } else if ((theme as any).background && typeof (theme as any).background === 'object' && 'type' in (theme as any).background) {
+      // Granular theme (old system)
+      const granularTheme = theme as GranularSectionTheme;
+      const style: React.CSSProperties = {};
+      
+      if (granularTheme.background) {
+        if (granularTheme.background.type === "gradient" && granularTheme.background.gradient) {
+          style['--section-background' as any] = `linear-gradient(135deg, ${granularTheme.background.gradient.join(', ')})`;
+        } else {
+          style['--section-background' as any] = granularTheme.background.solid || "#ffffff";
+        }
+      }
+      if (granularTheme.header) style['--section-header' as any] = granularTheme.header;
+      if (granularTheme.subheader) style['--section-subheader' as any] = granularTheme.subheader;
+      if (granularTheme.paragraph) style['--section-paragraph' as any] = granularTheme.paragraph;
+      if (granularTheme.button) {
+        style['--section-button-bg' as any] = granularTheme.button.background;
+        style['--section-button-text' as any] = granularTheme.button.text;
+      }
+      if (granularTheme.button2) {
+        style['--section-button2-bg' as any] = granularTheme.button2.background;
+        style['--section-button2-text' as any] = granularTheme.button2.text;
+      }
+      if (granularTheme.accent) style['--section-accent' as any] = granularTheme.accent;
+      if (granularTheme.icon) style['--section-icon' as any] = granularTheme.icon;
+      
+      return style;
+    } else {
+      // Legacy theme
+      const legacyTheme = theme as SectionTheme;
+      return {
+        '--section-primary': legacyTheme.primary,
+        '--section-secondary': legacyTheme.secondary,
+        '--section-accent': legacyTheme.accent,
+        '--section-background': legacyTheme.background,
+        '--section-text': legacyTheme.text,
+        '--section-border-radius': legacyTheme.borderRadius,
+      } as React.CSSProperties;
+    }
+  };
+
+  return (
+    <div 
+      ref={wrapperRef}
+      className="section-theme-wrapper"
+      style={getInlineStyle()}
+      data-section-id={(theme as any)?.sectionId || undefined}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function BuilderPage() {
   return (
     <Suspense
@@ -1664,6 +2086,7 @@ function SortableSection({
   setSelectedBlockIndex,
   onEdit,
   onDelete,
+  onReset,
   onMove,
   isFirst,
   isLast,
@@ -1674,6 +2097,7 @@ function SortableSection({
   setSelectedBlockIndex: (index: number) => void;
   onEdit: (field: string, cardIndex: number | string | null, cardType: string | null) => void;
   onDelete: () => void;
+  onReset: () => void;
   onMove: (direction: 'up' | 'down') => void;
   isFirst: boolean;
   isLast: boolean;
@@ -1757,27 +2181,40 @@ function SortableSection({
         </div>
       )}
 
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        className="absolute right-4 top-4 w-8 h-8 bg-white/90 backdrop-blur text-red-500 border border-red-100 shadow-sm rounded-lg flex items-center justify-center opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20 hover:bg-red-50 hover:border-red-200 hover:shadow-md hover:scale-105"
-        title="Delete Section"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
-
-      {/* The actual content */}
-      <div className="">
-        <Component
-          {...block.props}
-          onEdit={(field, cardIndex, cardType) => {
-            setSelectedBlockIndex(blockIndex);
-            onEdit(field, cardIndex, cardType);
+      {/* Action Buttons */}
+      <div className="absolute right-4 top-4 flex gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity z-20">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onReset();
           }}
-        />
+          className="w-8 h-8 bg-white/90 backdrop-blur text-orange-500 border border-orange-100 shadow-sm rounded-lg flex items-center justify-center hover:bg-orange-50 hover:border-orange-200 hover:shadow-md hover:scale-105 transition-all"
+          title="Reset to Default"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="w-8 h-8 bg-white/90 backdrop-blur text-red-500 border border-red-100 shadow-sm rounded-lg flex items-center justify-center hover:bg-red-50 hover:border-red-200 hover:shadow-md hover:scale-105 transition-all"
+          title="Delete Section"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
+
+      {/* The actual content - pass color props directly */}
+      <Component
+        key={block.id}
+        {...block.props}
+        {...themeToProps(block.theme || getDefaultGranularTheme(block.type, block.props))}
+        onEdit={(field, cardIndex, cardType) => {
+          setSelectedBlockIndex(blockIndex);
+          onEdit(field, cardIndex, cardType);
+        }}
+      />
     </div>
   );
 }

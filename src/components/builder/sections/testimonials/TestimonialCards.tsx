@@ -1,7 +1,14 @@
 "use client";
 import TextEditable from "../../TextEditable";
 
-export default function TestimonialCards({ testimonials = [], onEdit }) {
+export default function TestimonialCards({ 
+  testimonials = [], 
+  onEdit,
+  backgroundColor = "#ffffff",
+  titleColor = "#0f172a",
+  subtitleColor = "#64748b",
+  cardColors = [],
+}) {
   const defaultTestimonials = [
     {
       name: "Sarah Johnson",
@@ -53,7 +60,10 @@ export default function TestimonialCards({ testimonials = [], onEdit }) {
   items = items.slice(0, 3);
 
   return (
-    <section className="py-24 px-6 bg-gradient-to-b from-white to-gray-50">
+    <section 
+      className="py-24 px-6"
+      style={{ backgroundColor }}
+    >
       
       {/* Header */}
       <div className="max-w-7xl mx-auto text-center mb-16">
@@ -62,37 +72,64 @@ export default function TestimonialCards({ testimonials = [], onEdit }) {
             ⭐ Testimonials
           </span>
         </div>
-        <h2 className="text-3xl @sm:text-4xl @md:text-5xl font-extrabold text-gray-900 mb-4">
+        <h2 
+          className="text-3xl @sm:text-4xl @md:text-5xl font-extrabold mb-4"
+          style={{ color: titleColor }}
+        >
           What Our Customers Say
         </h2>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p 
+          className="text-lg max-w-2xl mx-auto"
+          style={{ color: subtitleColor }}
+        >
           Join thousands of satisfied users who have transformed their businesses
         </p>
       </div>
 
       {/* Testimonial Cards */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 @md:grid-cols-3 gap-8">
-        {items.map((testimonial, index) => (
+        {items.map((testimonial, index) => {
+          // Get card colors for this index
+          const cardColor = cardColors[index] || {};
+          const cardBg = cardColor.backgroundColor || "#ffffff";
+          const cardHeaderColor = cardColor.headerColor || titleColor;
+          const cardSubheaderColor = cardColor.subheaderColor || subtitleColor;
+          const cardParagraphColor = cardColor.paragraphColor || subtitleColor;
+          const cardAccent = cardColor.iconColor || "#4f46e5";
+
+          return (
           <div
             key={index}
-            className="group relative p-8 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fadeInUp"
-            style={{ animationDelay: `${index * 0.1}s` }}
+            className="group relative p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 animate-fadeInUp"
+            style={{ 
+              animationDelay: `${index * 0.1}s`,
+              backgroundColor: cardBg,
+            }}
           >
             {/* Gradient Border Effect */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl opacity-0 group-hover:opacity-100 transition blur" />
+            <div 
+              className="absolute -inset-0.5 rounded-2xl opacity-0 group-hover:opacity-100 transition blur" 
+              style={{ background: cardAccent }}
+            />
             
             {/* Card Content */}
-            <div className="relative bg-white rounded-2xl p-1">
+            <div 
+              className="relative rounded-2xl p-1"
+              style={{ backgroundColor: cardBg }}
+            >
               
               {/* Stars */}
-              <div className="flex gap-1 mb-4 text-yellow-400 text-lg">
+              <div className="flex gap-1 mb-4 text-lg">
                 {[...Array(testimonial.rating || 5)].map((_, i) => (
-                  <span key={i}>⭐</span>
+                  <span key={i} style={{ color: "#fbbf24" }}>⭐</span>
                 ))}
               </div>
 
               {/* Quote Text */}
-              <p className="text-gray-700 mb-6 leading-relaxed italic">
+              <p 
+                className="mb-6 leading-relaxed italic"
+                style={{ color: cardParagraphColor }}
+              >
                 <TextEditable onClick={() => onEdit("text", index, "testimonial")}>
                   "{testimonial.text}"
                 </TextEditable>
@@ -103,19 +140,26 @@ export default function TestimonialCards({ testimonials = [], onEdit }) {
                 <img
                   src={testimonial.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=random`}
                   alt={testimonial.name}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-indigo-200 cursor-pointer"
+                  className="w-14 h-14 rounded-full object-cover border-2 cursor-pointer"
+                  style={{ borderColor: cardAccent }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit("image", index, "testimonial");
                   }}
                 />
                 <div>
-                  <div className="font-semibold text-gray-900">
+                  <div 
+                    className="font-semibold"
+                    style={{ color: cardHeaderColor }}
+                  >
                     <TextEditable onClick={() => onEdit("name", index, "testimonial")}>
                       {testimonial.name}
                     </TextEditable>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div 
+                    className="text-sm"
+                    style={{ color: cardSubheaderColor }}
+                  >
                     <TextEditable onClick={() => onEdit("role", index, "testimonial")}>
                       {testimonial.role}
                     </TextEditable>
@@ -125,7 +169,7 @@ export default function TestimonialCards({ testimonials = [], onEdit }) {
 
             </div>
           </div>
-        ))}
+        )})}
       </div>
 
     </section>

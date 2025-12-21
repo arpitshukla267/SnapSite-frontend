@@ -1,7 +1,15 @@
 "use client";
 import TextEditable from "../../TextEditable";
 
-export default function TeamGrid({ members = [], onEdit }) {
+export default function TeamGrid({ 
+  members = [], 
+  onEdit,
+  backgroundColor = "#ffffff",
+  titleColor = "#0f172a",
+  subtitleColor = "#64748b",
+  accentColor = "#4f46e5",
+  cardColors = [],
+}) {
   const defaultMembers = [
     {
       name: "Alex Thompson",
@@ -32,7 +40,10 @@ export default function TeamGrid({ members = [], onEdit }) {
   const items = members.length > 0 ? members : defaultMembers;
 
   return (
-    <section className="py-24 px-6 bg-gradient-to-b from-white to-gray-50">
+    <section 
+      className="py-24 px-6"
+      style={{ backgroundColor }}
+    >
       
       {/* Header */}
       <div className="max-w-7xl mx-auto text-center mb-16">
@@ -41,10 +52,16 @@ export default function TeamGrid({ members = [], onEdit }) {
             👥 Our Team
           </span>
         </div>
-        <h2 className="text-3xl @sm:text-4xl @md:text-5xl font-extrabold text-gray-900 mb-4">
+        <h2 
+          className="text-3xl @sm:text-4xl @md:text-5xl font-extrabold mb-4"
+          style={{ color: titleColor }}
+        >
           Meet The Team
         </h2>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+        <p 
+          className="text-lg max-w-2xl mx-auto"
+          style={{ color: subtitleColor }}
+        >
           Talented individuals working together to build amazing products
         </p>
       </div>
@@ -59,7 +76,10 @@ export default function TeamGrid({ members = [], onEdit }) {
           >
             
             {/* Card */}
-            <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all">
+            <div 
+              className="rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all"
+              style={{ backgroundColor: cardColors[index]?.backgroundColor || "#ffffff" }}
+            >
               
               {/* Image Container */}
               <div className="relative overflow-hidden aspect-square">
@@ -91,12 +111,18 @@ export default function TeamGrid({ members = [], onEdit }) {
 
               {/* Info */}
               <div className="p-6 text-center">
-                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                <h3 
+                  className="text-xl font-bold mb-1"
+                  style={{ color: cardColors[index]?.headerColor || titleColor }}
+                >
                   <TextEditable onClick={() => onEdit("name", index, "member")}>
                     {member.name}
                   </TextEditable>
                 </h3>
-                <p className="text-indigo-600 font-medium">
+                <p 
+                  className="font-medium"
+                  style={{ color: cardColors[index]?.subheaderColor || accentColor }}
+                >
                   <TextEditable onClick={() => onEdit("role", index, "member")}>
                     {member.role}
                   </TextEditable>

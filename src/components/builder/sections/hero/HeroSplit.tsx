@@ -29,7 +29,12 @@ export default function HeroSplit({ title, subtitle, buttonText, image, onEdit, 
           </h1>
 
           {/* Gradient Accent */}
-          <div className="w-20 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full mt-6 mb-6" />
+          <div 
+            className="w-20 h-1.5 rounded-full mt-6 mb-6"
+            style={{
+              background: `linear-gradient(to right, var(--section-primary, #4f46e5), var(--section-secondary, #7c3aed))`
+            }}
+          />
 
           {/* SUBTITLE */}
           <p className="text-lg @md:text-xl text-gray-600 leading-relaxed max-w-lg">
@@ -40,13 +45,23 @@ export default function HeroSplit({ title, subtitle, buttonText, image, onEdit, 
 
           {/* BUTTON */}
           <div className="mt-10">
-            <button className="group relative px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-lg font-semibold shadow-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 overflow-hidden">
+            <button 
+              className="group relative px-8 py-4 text-white rounded-xl text-lg font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden"
+              style={{
+                background: `linear-gradient(to right, var(--section-primary, #4f46e5), var(--section-secondary, #7c3aed))`
+              }}
+            >
               <span className="relative z-10">
                 <TextEditable onClick={() => onEdit && onEdit("buttonText")} editable={editable}>
                   {buttonText || "Try Now"}
                 </TextEditable>
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{
+                  background: `linear-gradient(to right, var(--section-secondary, #7c3aed), var(--section-accent, #60a5fa))`
+                }}
+              />
             </button>
           </div>
 

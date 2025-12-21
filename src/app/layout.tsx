@@ -4,6 +4,7 @@ import "./globals.css";
 import React from "react";
 import ConditionalLayout from "../components/layout/ConditionalLayout";
 import { Toaster } from "react-hot-toast";
+import { ThemeProvider } from "../contexts/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,9 +31,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white`}
       >
-        <ConditionalLayout>
-          {children}
-        </ConditionalLayout>
+        <ThemeProvider>
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
         <Toaster
           position="top-right"
           containerStyle={{
@@ -70,6 +72,7 @@ export default function RootLayout({
             },
           }}
         />
+        </ThemeProvider>
       </body>
     </html>
   );
