@@ -341,10 +341,14 @@ export default function HeroAnimated({
                     backgroundColor: accentRgba(0.15),
                     borderColor: accentRgba(0.3),
                   }}
-                  transition={{ type: "spring", stiffness: 300 }}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                  transition={{ delay: 1 + index * 0.1, duration: 0.5 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 300,
+                    delay: 1 + index * 0.1, 
+                    duration: 0.5 
+                  }}
                 >
                   <motion.div
                     className="text-4xl mb-3"

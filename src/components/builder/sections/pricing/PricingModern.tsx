@@ -147,7 +147,11 @@ export default function PricingModern({
                     backgroundColor: cardBg,
                     borderColor: plan.popular ? accentColor : "rgba(0, 0, 0, 0.1)",
                   }}
-                  whileHover={{ shadow: "0 25px 50px rgba(0,0,0,0.15)" }}
+                  whileHover={{ 
+                    boxShadow: "0 25px 50px rgba(0,0,0,0.15)",
+                    scale: 1.02,
+                    y: -5
+                  }}
                 >
                   {/* Header */}
                   <div

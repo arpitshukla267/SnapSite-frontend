@@ -16,7 +16,7 @@ export default function PortfolioShowcase({
   title?: string;
   subtitle?: string;
   projects?: Array<{ title: string; category: string; image: string; description: string }>;
-  onEdit?: (field: string, cardIndex?: number) => void;
+  onEdit?: (field: string, cardIndex?: number, cardType?: string) => void;
   backgroundColor?: string;
   titleColor?: string;
   subtitleColor?: string;
