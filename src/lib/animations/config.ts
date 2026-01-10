@@ -61,7 +61,7 @@ export interface OrbConfig {
   count: number;
   size: { min: number; max: number };
   colors: string[];
-  positions: Array<{ left: string; top: string }>;
+  positions: Array<{ left?: string; top?: string; right?: string; bottom?: string }>;
   animation: {
     duration: number;
     delay?: number;

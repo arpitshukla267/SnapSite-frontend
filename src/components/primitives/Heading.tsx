@@ -19,7 +19,7 @@ export default function Heading({
   className = "",
   ...props
 }: HeadingProps) {
-  const Tag = as || (`h${level}` as keyof JSX.IntrinsicElements);
+  const Tag = as || (`h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6");
   const sizeClasses = {
     1: "text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold",
     2: "text-3xl sm:text-4xl md:text-5xl font-bold",
