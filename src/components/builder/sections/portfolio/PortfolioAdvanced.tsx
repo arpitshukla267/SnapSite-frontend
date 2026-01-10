@@ -98,7 +98,7 @@ export default function PortfolioAdvanced({
       scale: 1,
       transition: {
         duration: 0.5,
-        ease: "easeOut",
+        ease: [0.0, 0.0, 0.2, 1.0] as const, // easeOut cubic bezier
       },
     },
   };
