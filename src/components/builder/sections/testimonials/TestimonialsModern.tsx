@@ -16,7 +16,7 @@ export default function TestimonialsModern({
   title?: string;
   subtitle?: string;
   testimonials?: Array<{ name: string; role: string; text: string; image: string; rating?: number }>;
-  onEdit?: (field: string, cardIndex?: number) => void;
+  onEdit?: (field: string, cardIndex?: number, cardType?: string) => void;
   backgroundColor?: string;
   titleColor?: string;
   subtitleColor?: string;
