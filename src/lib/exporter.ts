@@ -1,11 +1,27 @@
 import { SectionRegistry } from "./sectionRegistry";
 import { themeToProps } from "./themeToProps";
+import { 
+  BackgroundAnimationConfig, 
+  getDefaultAnimationConfig, 
+  mergeAnimationConfig 
+} from "./animations/config";
+import { 
+  generateAnimationCSS, 
+  generateParticleJS, 
+  generateParticleCanvas,
+  generateGridHTML,
+  generateOrbsHTML,
+  generateGradientStyle 
+} from "./animations/renderer";
+import { generateOrbAnimationJS } from "./animations/orbAnimationJS";
 
 // Helper function to convert HTML to React JSX
 function htmlToJsx(html: string): string {
   let jsx = html
     // Remove HTML comments
     .replace(/<!--[\s\S]*?-->/g, "")
+    // Convert class to className (must be done before other conversions)
+    .replace(/\sclass="/g, ' className="')
     // Convert self-closing tags that might not be properly closed
     .replace(/<img([^>]*?)(?<!\s\/)>/gi, '<img$1 />')
     .replace(/<input([^>]*?)(?<!\s\/)>/gi, '<input$1 />')
@@ -77,7 +93,7 @@ function htmlToJsx(html: string): string {
 }
 
 // Generate React component code from HTML
-function generateReactComponent(componentName: string, htmlCode: string, props: any): string {
+function generateReactComponent(componentName: string, htmlCode: string, props: any, isNextJs: boolean = false): string {
   let jsx = htmlToJsx(htmlCode);
   
   // Extract props used in the component
@@ -89,19 +105,70 @@ function generateReactComponent(componentName: string, htmlCode: string, props: 
   const propsInterface = propTypes ? `: { ${propTypes} }` : "";
   const propsDestructure = propNames.length > 0 ? `{ ${propNames.join(", ")} }` : "";
   
+  // Check if component uses particle animations
+  const usesParticles = props && props.particleType && props.particleType !== "none";
+  
   // Check if component needs "use client" directive (for animations, interactivity, etc.)
   const needsClient = htmlCode.includes('data-particle') || 
                       htmlCode.includes('testimonial-carousel') ||
                       htmlCode.includes('viewport-animate') ||
                       htmlCode.includes('onClick') ||
-                      htmlCode.includes('addEventListener');
+                      htmlCode.includes('addEventListener') ||
+                      htmlCode.includes('float-orb') ||
+                      htmlCode.includes('float-card') ||
+                      htmlCode.includes('animate-grid') ||
+                      htmlCode.includes('motion') ||
+                      usesParticles;
   
   const clientDirective = needsClient ? '"use client";\n\n' : '';
+  
+  // Check if component needs Framer Motion for animations
+  // Also check if any motion.div, motion.h2, motion.p, etc. are in the original component
+  const needsFramerMotion = htmlCode.includes('float-orb') || 
+                            htmlCode.includes('float-card') ||
+                            htmlCode.includes('animate-grid') ||
+                            htmlCode.includes('motion') ||
+                            htmlCode.includes('motion.div') ||
+                            htmlCode.includes('motion.h') ||
+                            htmlCode.includes('motion.p') ||
+                            htmlCode.includes('motion.button') ||
+                            htmlCode.includes('motion.span') ||
+                            props?.enableTextReveal ||
+                            props?.enableGradientAnimation;
   
   // Generate hooks and initialization code
   let hooksCode = '';
   let initializationCode = '';
   let needsSectionRef = false;
+  
+  // Add particle component imports if needed
+  if (usesParticles) {
+    const particleType = props.particleType;
+    const particleTypeMap: Record<string, string> = {
+      stars: "ParticleStars",
+      floating: "ParticleFloating",
+      bubbles: "ParticleBubbles",
+      dots: "ParticleDots",
+      waves: "ParticleWaves",
+    };
+    
+    const particleComponentName = particleTypeMap[particleType] || "ParticleStars";
+    // Import path differs for Next.js vs React
+    // For Next.js: components are in components/ folder at root, so ui/particles is at components/ui/particles (relative to components/)
+    // For React: components are in src/components/ folder, so ui/particles is at src/components/ui/particles (relative to src/components/)
+    const particleImportPath = isNextJs 
+      ? `./ui/particles`
+      : `./ui/particles`;
+    hooksCode += `import { ${particleComponentName} } from "${particleImportPath}";\n`;
+    
+    // Inject particle component JSX into the section
+    const particleColor = props.particleColor || "255, 255, 255";
+    const particleOpacity = props.particleOpacity || 0.3;
+    const particleJSX = `<${particleComponentName} count={${particleType === "stars" ? 100 : particleType === "floating" ? 50 : particleType === "bubbles" ? 30 : particleType === "dots" ? 200 : 80}} speed={${particleType === "stars" ? 0.2 : particleType === "floating" ? 0.3 : particleType === "bubbles" ? 0.5 : particleType === "dots" ? 0.2 : 0.3}} color="${particleColor}" opacity={${particleOpacity}} />`;
+    
+    // Insert particle component after opening section tag
+    jsx = jsx.replace(/(<section[^>]*>)/, `$1\n        ${particleJSX}`);
+  }
   
   // Particle canvas initialization
   if (htmlCode.includes('data-particle')) {
@@ -335,6 +402,85 @@ function generateReactComponent(componentName: string, htmlCode: string, props: 
 `;
   }
   
+  // Add Framer Motion for floating animations
+  if (needsFramerMotion) {
+    if (!hooksCode.includes('framer-motion')) {
+      hooksCode += 'import { motion } from "framer-motion";\n';
+    }
+    
+    // Convert float-orb-1 to motion.div
+    // First, handle the opening tag
+    jsx = jsx.replace(/<div([^>]*?)className="([^"]*?)float-orb-1([^"]*?)"([^>]*?)>/g, (match, before, classBefore, classAfter, after) => {
+      const className = (classBefore + classAfter).replace(/float-orb-1/g, '').trim();
+      const allAttrs = before + after;
+      const styleMatch = allAttrs.match(/style=\{\{([^}]+)\}\}/);
+      const style = styleMatch ? ` style={{${styleMatch[1]}}}` : '';
+      const otherAttrsClean = allAttrs.replace(/style=\{\{[^}]+\}\}/g, '').trim();
+      return `<motion.div${otherAttrsClean} className="${className}"${style}
+          animate={{
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}>`;
+    });
+    
+    // Convert float-orb-2 to motion.div
+    jsx = jsx.replace(/<div([^>]*?)className="([^"]*?)float-orb-2([^"]*?)"([^>]*?)>/g, (match, before, classBefore, classAfter, after) => {
+      const className = (classBefore + classAfter).replace(/float-orb-2/g, '').trim();
+      const allAttrs = before + after;
+      const styleMatch = allAttrs.match(/style=\{\{([^}]+)\}\}/);
+      const style = styleMatch ? ` style={{${styleMatch[1]}}}` : '';
+      const otherAttrsClean = allAttrs.replace(/style=\{\{[^}]+\}\}/g, '').trim();
+      return `<motion.div${otherAttrsClean} className="${className}"${style}
+          animate={{
+            x: [0, -50, 0],
+            y: [0, -30, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}>`;
+    });
+    
+    // Convert float-card to motion.div
+    let cardIndex = 0;
+    jsx = jsx.replace(/<div([^>]*?)className="([^"]*?)float-card([^"]*?)"([^>]*?)>/g, (match, before, classBefore, classAfter, after) => {
+      const className = (classBefore + classAfter).replace(/float-card/g, '').trim();
+      const allAttrs = before + after;
+      const styleMatch = allAttrs.match(/style=\{\{([^}]+)\}\}/);
+      const style = styleMatch ? ` style={{${styleMatch[1]}}}` : '';
+      const otherAttrsClean = allAttrs.replace(/style=\{\{[^}]+\}\}/g, '').trim();
+      const delay = cardIndex * 0.5;
+      cardIndex++;
+      return `<motion.div${otherAttrsClean} className="${className}"${style}
+          animate={{
+            y: [0, -30, 0],
+            x: [0, 20, 0],
+            rotate: [0, 10, 0],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            delay: ${delay},
+            ease: "easeInOut",
+          }}>`;
+    });
+    
+    // Now convert closing </div> tags that immediately follow motion.div (for empty divs)
+    // Pattern: <motion.div ...></div> or <motion.div ...>\n</div> -> <motion.div ... />
+    // Match across newlines with [\s\S]*?
+    jsx = jsx.replace(/<motion\.div([^>]*?)>[\s\n]*<\/div>/g, (match, attrs) => {
+      return `<motion.div${attrs} />`;
+    });
+  }
+  
   // Add section ref if needed
   if (needsSectionRef && !jsx.includes('ref={sectionRef}')) {
     jsx = jsx.replace(/<section([^>]*?)>/g, (match, attrs) => {
@@ -367,18 +513,26 @@ function getPropType(value: any): string {
 }
 
 // Generate component code for export
-export function generateComponentCode(block: any): { name: string; code: string } {
+export function generateComponentCode(block: any, isNextJs: boolean = false): { name: string; code: string } {
   const entry = SectionRegistry[block.type];
   if (!entry || !entry.export.html) {
     throw new Error(`Component ${block.type} not found or has no HTML export`);
   }
 
   const componentName = entry.export.react?.name || entry.export.next?.name || block.type;
+  
+  // Convert theme to color props and merge with block props
+  const colorProps = themeToProps(block.theme || {});
+  const mergedProps = {
+    ...(block.props || {}),
+    ...colorProps,
+  };
+  
   const htmlCode = typeof entry.export.html === "function" 
-    ? entry.export.html(block.props || {})
+    ? entry.export.html(mergedProps)
     : entry.export.html;
   
-  const componentCode = generateReactComponent(componentName, htmlCode, block.props || {});
+  const componentCode = generateReactComponent(componentName, htmlCode, mergedProps, isNextJs);
   
   return { name: componentName, code: componentCode };
 }
@@ -391,7 +545,7 @@ export function exportToReact(layout: any[], isNextJs: boolean = false): { pageC
 
   layout.forEach((block, index) => {
     try {
-      const { name, code } = generateComponentCode(block);
+      const { name, code } = generateComponentCode(block, isNextJs);
       
       // Store component code
       components.set(name, code);
@@ -402,8 +556,15 @@ export function exportToReact(layout: any[], isNextJs: boolean = false): { pageC
         : `./components/${name}`;
       imports.push(`import ${name} from "${importPath}";`);
       
+      // Convert theme to color props and merge with block props for component usage
+      const colorProps = themeToProps(block.theme || {});
+      const mergedProps = {
+        ...(block.props || {}),
+        ...colorProps,
+      };
+      
       // Generate props for component usage
-      const props = Object.entries(block.props || {})
+      const props = Object.entries(mergedProps)
         .map(([key, value]) => {
           if (typeof value === "string") {
             return `${key}="${value.replace(/"/g, '\\"')}"`;
@@ -743,13 +904,32 @@ function generateComponentsCSS() {
 // Generate sections.css - all section layouts with scoped class names
 function generateSectionsCSS(layout: any[]) {
   const sectionTypes = new Set<string>();
+  const animationConfigs = new Map<string, BackgroundAnimationConfig>();
+  
   layout.forEach((block) => {
     if (block.type) {
       sectionTypes.add(block.type);
+      
+      // Extract animation config from block props
+      if (block.props?.animationConfig) {
+        const defaultConfig = getDefaultAnimationConfig(block.type);
+        animationConfigs.set(block.type, mergeAnimationConfig(block.props.animationConfig, defaultConfig));
+      } else {
+        // Use default config if none provided
+        animationConfigs.set(block.type, getDefaultAnimationConfig(block.type));
+      }
     }
   });
 
   let sectionsCSS = `/* ===== SECTION STYLES - Scoped by data-section attribute ===== */\n\n`;
+  
+  // Generate animation CSS for all sections
+  animationConfigs.forEach((config, sectionType) => {
+    const animationCSS = generateAnimationCSS(config);
+    if (animationCSS) {
+      sectionsCSS += `/* Animation styles for ${sectionType} */\n${animationCSS}\n\n`;
+    }
+  });
 
   // Add common section animations
   sectionsCSS += `/* Common Animations */
@@ -1251,8 +1431,10 @@ function addDataSectionAttribute(html: string, sectionType: string): string {
 
 export function exportToHTML(layout: any[]) {
   let bodyContent = "";
+  let particleJS = "";
+  let orbAnimationJS = "";
 
-  layout.forEach((block) => {
+  layout.forEach((block, index) => {
     const entry = SectionRegistry[block.type];
     if (!entry) return;
 
@@ -1260,9 +1442,83 @@ export function exportToHTML(layout: any[]) {
     if (typeof htmlExport === "function") {
       // Convert theme to color props
       const colorProps = themeToProps(block.theme);
-      // Merge props with color props (color props override defaults)
-      const mergedProps = { ...(block.props || {}), ...colorProps };
+      
+      // Extract and merge animation config
+      const defaultConfig = getDefaultAnimationConfig(block.type);
+      const userConfig = block.props?.animationConfig || {};
+      const animationConfig = mergeAnimationConfig(userConfig, defaultConfig);
+      
+      // Merge props with color props and animation config
+      const mergedProps = { 
+        ...(block.props || {}), 
+        ...colorProps,
+        animationConfig // Include animation config in props for HTML export
+      };
+      
       let sectionHTML = htmlExport(mergedProps);
+      
+      // Extract canvas ID from HTML if it already exists (for hero sections that include canvas in HTML export)
+      const existingCanvasMatch = sectionHTML.match(/<canvas[^>]*id="([^"]*)"[^>]*data-particle/);
+      const canvasId = existingCanvasMatch ? existingCanvasMatch[1] : `particle-canvas-${index}`;
+      
+      // Inject animation-specific HTML (particles, grid, orbs) if not already in export
+      if (animationConfig.overlay?.particles?.enabled) {
+        // Only add canvas if it doesn't exist
+        if (!existingCanvasMatch) {
+          const canvasHTML = generateParticleCanvas(animationConfig, canvasId);
+          if (canvasHTML) {
+            // Insert canvas after opening section tag
+            sectionHTML = sectionHTML.replace(
+              /(<section[^>]*>)/,
+              `$1\n${canvasHTML}`
+            );
+          }
+        }
+        // Always generate JS for particles (uses existing canvas ID if found)
+        const js = generateParticleJS(animationConfig, canvasId);
+        if (js) particleJS += js + "\n";
+      }
+      
+      if (animationConfig.overlay?.grid?.enabled) {
+        // Only add grid if it doesn't exist
+        if (!sectionHTML.includes('data-animated-grid') && !sectionHTML.includes('animate-grid')) {
+          const gridHTML = generateGridHTML(animationConfig);
+          if (gridHTML) {
+            sectionHTML = sectionHTML.replace(
+              /(<section[^>]*>)/,
+              `$1\n${gridHTML}`
+            );
+          }
+        }
+      }
+      
+      if (animationConfig.overlay?.orbs?.enabled) {
+        // Only add orbs if they don't exist
+        if (!sectionHTML.includes('float-orb')) {
+          const orbsHTML = generateOrbsHTML(animationConfig);
+          if (orbsHTML) {
+            sectionHTML = sectionHTML.replace(
+              /(<section[^>]*>)/,
+              `$1\n${orbsHTML}`
+            );
+            // Generate JS for orb animation
+            const orbJS = generateOrbAnimationJS(animationConfig);
+            if (orbJS) orbAnimationJS += orbJS + "\n";
+          }
+        }
+      }
+      
+      // Mark animated gradients for JS-driven animation (if not already marked)
+      if (animationConfig.type === "animated-gradient" && animationConfig.gradient && animationConfig.gradient.colors.length >= 2) {
+        if (!sectionHTML.includes('data-animated-gradient')) {
+          // Add data attributes to section for gradient animation
+          sectionHTML = sectionHTML.replace(
+            /(<section[^>]*)(?![^>]*data-animated-gradient)/,
+            `$1 data-animated-gradient="true" data-gradient-duration="${15 / (animationConfig.animation?.speed || 1)}" data-gradient-easing="${animationConfig.animation?.easing || 'ease'}"`
+          );
+        }
+      }
+      
       // Add data-section attribute
       sectionHTML = addDataSectionAttribute(sectionHTML, block.type);
       bodyContent += sectionHTML + "\n";
@@ -1640,66 +1896,114 @@ ${bodyContent}
     });
   });
 
-  // Particle Animation (for canvas-based particles)
-  function initParticles(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
+  ${particleJS || `// No particle animations configured`}
+  
+  ${orbAnimationJS || `// No orb animations configured`}
+  
+  // Time-driven grid animation
+  (function() {
+    function getAnimationTime() {
+      if (typeof window !== 'undefined' && window.performance) {
+        return window.performance.now() / 1000;
+      }
+      return Date.now() / 1000;
+    }
     
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const particles = [];
-    const particleCount = 50;
-
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        radius: Math.random() * 2 + 1,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        opacity: Math.random() * 0.5 + 0.2,
-      });
+    function getAnimationProgress(duration, offset, loop) {
+      const time = getAnimationTime();
+      const elapsed = (time - offset) % (loop ? duration : duration * 2);
+      if (!loop && elapsed > duration) return 1;
+      return (elapsed / duration) % 1;
     }
-
-    function animate() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particles.forEach(particle => {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-
-        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
-        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        ctx.fillStyle = \`rgba(255, 255, 255, \${particle.opacity})\`;
-        ctx.fill();
+    
+    const animatedGrids = document.querySelectorAll('[data-animated-grid="true"]');
+    
+    function animateGrids() {
+      animatedGrids.forEach(function(grid) {
+        const computedStyle = window.getComputedStyle(grid);
+        const backgroundSize = computedStyle.backgroundSize;
+        const sizeMatch = backgroundSize.match(/(\\d+)px/);
+        if (!sizeMatch) return;
+        
+        const size = parseInt(sizeMatch[1]);
+        const duration = 20;
+        const progress = getAnimationProgress(duration, 0, true);
+        const position = progress * size;
+        
+        grid.style.backgroundPosition = \`\${position}px \${position}px\`;
       });
-
-      requestAnimationFrame(animate);
+      
+      requestAnimationFrame(animateGrids);
     }
-
-    animate();
-
-    window.addEventListener('resize', function() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-  }
-
-  // Initialize particles on load
-  document.addEventListener('DOMContentLoaded', function() {
-    const particleCanvases = document.querySelectorAll('canvas[data-particle]');
-    particleCanvases.forEach(function(canvas, index) {
-      canvas.id = 'particle-canvas-' + index;
-      initParticles(canvas.id);
-    });
-  });
+    
+    if (animatedGrids.length > 0) {
+      animateGrids();
+    }
+  })();
+  
+  // Time-driven gradient animation
+  (function() {
+    function getAnimationTime() {
+      if (typeof window !== 'undefined' && window.performance) {
+        return window.performance.now() / 1000;
+      }
+      return Date.now() / 1000;
+    }
+    
+    function getAnimationProgress(duration, offset, loop) {
+      const time = getAnimationTime();
+      const elapsed = (time - offset) % (loop ? duration : duration * 2);
+      if (!loop && elapsed > duration) return 1;
+      return (elapsed / duration) % 1;
+    }
+    
+    function applyEasing(t, type) {
+      const easings = {
+        linear: t => t,
+        ease: t => t * (2 - t),
+        'ease-in': t => t * t,
+        'ease-out': t => t * (2 - t),
+        'ease-in-out': t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+      };
+      return (easings[type] || easings.linear)(t);
+    }
+    
+    const animatedGradients = document.querySelectorAll('[data-animated-gradient="true"]');
+    
+    function animateGradients() {
+      animatedGradients.forEach(function(element) {
+        const duration = parseFloat(element.getAttribute('data-gradient-duration')) || 15;
+        const easing = element.getAttribute('data-gradient-easing') || 'ease';
+        const progress = getAnimationProgress(duration, 0, true);
+        const easedProgress = applyEasing(progress, easing);
+        const position = easedProgress * 100;
+        
+        // Find the gradient div inside the section and animate it
+        // Try multiple selectors to find the gradient div
+        let gradientDiv = element.querySelector('div.absolute.inset-0[style*="background-image"]');
+        if (!gradientDiv) {
+          gradientDiv = Array.from(element.querySelectorAll('div')).find(function(div) {
+            const style = div.getAttribute('style') || '';
+            return style.includes('background-image') && style.includes('linear-gradient');
+          });
+        }
+        if (!gradientDiv) {
+          // Fallback: first div with absolute inset-0
+          gradientDiv = element.querySelector('div.absolute.inset-0');
+        }
+        
+        if (gradientDiv) {
+          gradientDiv.style.backgroundPosition = \`\${position}% 50%\`;
+        }
+      });
+      
+      requestAnimationFrame(animateGradients);
+    }
+    
+    if (animatedGradients.length > 0) {
+      animateGradients();
+    }
+  })();
 </script>
 <script src="assets/js/main.js"></script>
 </body>
@@ -1740,6 +2044,724 @@ function validateExport(layout: any[]): { valid: boolean; errors: string[] } {
   return { valid: errors.length === 0, errors };
 }
 
+// Helper function to collect used particle types from layout
+function getUsedParticleTypes(layout: any[]): Set<string> {
+  const usedTypes = new Set<string>();
+  
+  layout.forEach((block) => {
+    const particleType = block.props?.particleType;
+    if (particleType && particleType !== "none") {
+      usedTypes.add(particleType);
+    }
+  });
+  
+  return usedTypes;
+}
+
+// Helper function to add particle UI components to export (only used ones)
+async function addParticleComponentsToZip(zip: any, layout: any[], isNextJs: boolean = false) {
+  const usedTypes = getUsedParticleTypes(layout);
+  
+  // If no particle types are used, don't export any
+  if (usedTypes.size === 0) {
+    return;
+  }
+  const particleComponents = [
+    {
+      name: "ParticleStars",
+      content: `/**
+ * Particle Stars Background
+ * 
+ * A starfield effect with twinkling stars that move slowly across the screen.
+ */
+
+"use client";
+
+import { useEffect, useRef } from "react";
+
+interface ParticleStarsProps {
+  count?: number;
+  speed?: number;
+  color?: string;
+  opacity?: number;
+  className?: string;
+}
+
+export default function ParticleStars({
+  count = 100,
+  speed = 0.2,
+  color = "255, 255, 255",
+  opacity = 0.8,
+  className = "",
+}: ParticleStarsProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Set canvas size relative to container
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    };
+    
+    // Initial resize
+    resize();
+
+    // Generate stars
+    const stars: Array<{
+      x: number;
+      y: number;
+      radius: number;
+      twinkleSpeed: number;
+      twinkleOffset: number;
+    }> = [];
+
+    const generateStars = () => {
+      stars.length = 0;
+      const rect = canvas.getBoundingClientRect();
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * rect.width,
+          y: Math.random() * rect.height,
+          radius: Math.random() * 1.5 + 0.5,
+          twinkleSpeed: Math.random() * 0.02 + 0.01,
+          twinkleOffset: Math.random() * Math.PI * 2,
+        });
+      }
+    };
+    
+    generateStars();
+
+    let animationFrameId: number;
+    let time = 0;
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      time += speed;
+
+      const rect = canvas.getBoundingClientRect();
+      stars.forEach((star) => {
+        // Twinkling effect
+        const twinkle = Math.sin(time * star.twinkleSpeed + star.twinkleOffset) * 0.3 + 0.7;
+        const currentOpacity = opacity * twinkle;
+
+        // Draw star
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fillStyle = \`rgba(\${color}, \${currentOpacity})\`;
+        ctx.fill();
+
+        // Move star slowly
+        star.x += speed * 0.1;
+        if (star.x > rect.width) {
+          star.x = 0;
+          star.y = Math.random() * rect.height;
+        }
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    // Use ResizeObserver for better container tracking
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+      generateStars();
+    });
+    resizeObserver.observe(canvas);
+
+    window.addEventListener("resize", resize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", resize);
+    };
+  }, [count, speed, color, opacity]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+      <canvas
+        ref={canvasRef}
+        className={\`w-full h-full \${className}\`}
+        style={{ display: 'block', width: '100%', height: '100%' }}
+      />
+    </div>
+  );
+}
+`
+    },
+    {
+      name: "ParticleFloating",
+      content: `/**
+ * Particle Floating Background
+ * 
+ * Floating particles that move in smooth, organic patterns with connections between nearby particles.
+ */
+
+"use client";
+
+import { useEffect, useRef } from "react";
+
+interface ParticleFloatingProps {
+  count?: number;
+  speed?: number;
+  color?: string;
+  opacity?: number;
+  connectDistance?: number;
+  className?: string;
+}
+
+export default function ParticleFloating({
+  count = 50,
+  speed = 0.3,
+  color = "255, 255, 255",
+  opacity = 0.4,
+  connectDistance = 150,
+  className = "",
+}: ParticleFloatingProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    };
+    resize();
+
+    const particles: Array<{
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      radius: number;
+    }> = [];
+
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * speed,
+        vy: (Math.random() - 0.5) * speed,
+        radius: Math.random() * 2 + 1,
+      });
+    }
+
+    let animationFrameId: number;
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      particles.forEach((particle) => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+
+        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
+        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+
+        particle.x = Math.max(0, Math.min(canvas.width, particle.x));
+        particle.y = Math.max(0, Math.min(canvas.height, particle.y));
+
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        ctx.fillStyle = \`rgba(\${color}, \${opacity})\`;
+        ctx.fill();
+      });
+
+      particles.forEach((particle, i) => {
+        particles.slice(i + 1).forEach((other) => {
+          const dx = particle.x - other.x;
+          const dy = particle.y - other.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < connectDistance) {
+            const lineOpacity = (1 - distance / connectDistance) * opacity * 0.3;
+            ctx.beginPath();
+            ctx.moveTo(particle.x, particle.y);
+            ctx.lineTo(other.x, other.y);
+            ctx.strokeStyle = \`rgba(\${color}, \${lineOpacity})\`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        });
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    window.addEventListener("resize", resize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", resize);
+    };
+  }, [count, speed, color, opacity, connectDistance]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+      <canvas
+        ref={canvasRef}
+        className={\`w-full h-full \${className}\`}
+        style={{ display: 'block', width: '100%', height: '100%' }}
+      />
+    </div>
+  );
+}
+`
+    },
+    {
+      name: "ParticleBubbles",
+      content: `/**
+ * Particle Bubbles Background
+ * 
+ * Floating bubbles that rise from the bottom with varying sizes and speeds.
+ */
+
+"use client";
+
+import { useEffect, useRef } from "react";
+
+interface ParticleBubblesProps {
+  count?: number;
+  speed?: number;
+  color?: string;
+  opacity?: number;
+  maxSize?: number;
+  className?: string;
+}
+
+export default function ParticleBubbles({
+  count = 30,
+  speed = 0.5,
+  color = "255, 255, 255",
+  opacity = 0.3,
+  maxSize = 60,
+  className = "",
+}: ParticleBubblesProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    };
+    resize();
+
+    const bubbles: Array<{
+      x: number;
+      y: number;
+      radius: number;
+      vy: number;
+      opacity: number;
+    }> = [];
+
+    for (let i = 0; i < count; i++) {
+      bubbles.push({
+        x: Math.random() * canvas.width,
+        y: canvas.height + Math.random() * 200,
+        radius: Math.random() * (maxSize / 2) + 10,
+        vy: -(Math.random() * speed + 0.2),
+        opacity: Math.random() * opacity + 0.1,
+      });
+    }
+
+    let animationFrameId: number;
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      bubbles.forEach((bubble) => {
+        bubble.y += bubble.vy * speed;
+
+        if (bubble.y + bubble.radius < 0) {
+          bubble.y = canvas.height + bubble.radius;
+          bubble.x = Math.random() * canvas.width;
+        }
+
+        const gradient = ctx.createRadialGradient(
+          bubble.x - bubble.radius * 0.3,
+          bubble.y - bubble.radius * 0.3,
+          0,
+          bubble.x,
+          bubble.y,
+          bubble.radius
+        );
+        gradient.addColorStop(0, \`rgba(\${color}, \${bubble.opacity * 0.8})\`);
+        gradient.addColorStop(1, \`rgba(\${color}, 0)\`);
+
+        ctx.beginPath();
+        ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        ctx.strokeStyle = \`rgba(\${color}, \${bubble.opacity * 0.5})\`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    window.addEventListener("resize", resize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", resize);
+    };
+  }, [count, speed, color, opacity, maxSize]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+      <canvas
+        ref={canvasRef}
+        className={\`w-full h-full \${className}\`}
+        style={{ display: 'block', width: '100%', height: '100%' }}
+      />
+    </div>
+  );
+}
+`
+    },
+    {
+      name: "ParticleDots",
+      content: `/**
+ * Particle Dots Background
+ * 
+ * Small dots that move in a grid-like pattern with smooth motion.
+ */
+
+"use client";
+
+import { useEffect, useRef } from "react";
+
+interface ParticleDotsProps {
+  count?: number;
+  speed?: number;
+  color?: string;
+  opacity?: number;
+  size?: number;
+  className?: string;
+}
+
+export default function ParticleDots({
+  count = 200,
+  speed = 0.2,
+  color = "255, 255, 255",
+  opacity = 0.5,
+  size = 2,
+  className = "",
+}: ParticleDotsProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    };
+    resize();
+
+    const cols = Math.ceil(Math.sqrt(count));
+    const rows = Math.ceil(count / cols);
+    const spacingX = canvas.width / cols;
+    const spacingY = canvas.height / rows;
+
+    const dots: Array<{
+      baseX: number;
+      baseY: number;
+      offsetX: number;
+      offsetY: number;
+      speedX: number;
+      speedY: number;
+      radius: number;
+    }> = [];
+
+    for (let i = 0; i < count; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      dots.push({
+        baseX: col * spacingX + spacingX / 2,
+        baseY: row * spacingY + spacingY / 2,
+        offsetX: 0,
+        offsetY: 0,
+        speedX: (Math.random() - 0.5) * speed,
+        speedY: (Math.random() - 0.5) * speed,
+        radius: size + Math.random() * 1,
+      });
+    }
+
+    let animationFrameId: number;
+    let time = 0;
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      time += 0.01;
+
+      dots.forEach((dot) => {
+        dot.offsetX += dot.speedX;
+        dot.offsetY += dot.speedY;
+
+        const maxOffset = Math.min(spacingX, spacingY) * 0.3;
+        if (Math.abs(dot.offsetX) > maxOffset) dot.speedX *= -1;
+        if (Math.abs(dot.offsetY) > maxOffset) dot.speedY *= -1;
+
+        const x = dot.baseX + dot.offsetX;
+        const y = dot.baseY + dot.offsetY;
+
+        ctx.beginPath();
+        ctx.arc(x, y, dot.radius, 0, Math.PI * 2);
+        ctx.fillStyle = \`rgba(\${color}, \${opacity})\`;
+        ctx.fill();
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    window.addEventListener("resize", resize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", resize);
+    };
+  }, [count, speed, color, opacity, size]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+      <canvas
+        ref={canvasRef}
+        className={\`w-full h-full \${className}\`}
+        style={{ display: 'block', width: '100%', height: '100%' }}
+      />
+    </div>
+  );
+}
+`
+    },
+    {
+      name: "ParticleWaves",
+      content: `/**
+ * Particle Waves Background
+ * 
+ * Particles that move in wave-like patterns creating flowing motion.
+ */
+
+"use client";
+
+import { useEffect, useRef } from "react";
+
+interface ParticleWavesProps {
+  count?: number;
+  speed?: number;
+  color?: string;
+  opacity?: number;
+  waveAmplitude?: number;
+  waveFrequency?: number;
+  className?: string;
+}
+
+export default function ParticleWaves({
+  count = 80,
+  speed = 0.3,
+  color = "255, 255, 255",
+  opacity = 0.4,
+  waveAmplitude = 50,
+  waveFrequency = 0.02,
+  className = "",
+}: ParticleWavesProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    };
+    resize();
+
+    const rows = Math.ceil(Math.sqrt(count));
+    const particlesPerRow = Math.ceil(count / rows);
+    const spacingX = canvas.width / particlesPerRow;
+    const spacingY = canvas.height / rows;
+
+    const particles: Array<{
+      baseX: number;
+      baseY: number;
+      radius: number;
+      waveOffset: number;
+    }> = [];
+
+    for (let i = 0; i < count; i++) {
+      const row = Math.floor(i / particlesPerRow);
+      const col = i % particlesPerRow;
+      particles.push({
+        baseX: col * spacingX + spacingX / 2,
+        baseY: row * spacingY + spacingY / 2,
+        radius: Math.random() * 2 + 1.5,
+        waveOffset: Math.random() * Math.PI * 2,
+      });
+    }
+
+    let animationFrameId: number;
+    let time = 0;
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      time += speed * 0.01;
+
+      particles.forEach((particle) => {
+        const waveX = Math.sin(time * waveFrequency + particle.waveOffset) * waveAmplitude;
+        const waveY = Math.cos(time * waveFrequency * 0.7 + particle.waveOffset) * waveAmplitude * 0.5;
+
+        const x = particle.baseX + waveX;
+        const y = particle.baseY + waveY;
+
+        ctx.beginPath();
+        ctx.arc(x, y, particle.radius, 0, Math.PI * 2);
+        ctx.fillStyle = \`rgba(\${color}, \${opacity})\`;
+        ctx.fill();
+
+        particles.forEach((other) => {
+          if (other === particle) return;
+          const dx = x - (other.baseX + Math.sin(time * waveFrequency + other.waveOffset) * waveAmplitude);
+          const dy = y - (other.baseY + Math.cos(time * waveFrequency * 0.7 + other.waveOffset) * waveAmplitude * 0.5);
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < 100) {
+            const lineOpacity = (1 - distance / 100) * opacity * 0.2;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(
+              other.baseX + Math.sin(time * waveFrequency + other.waveOffset) * waveAmplitude,
+              other.baseY + Math.cos(time * waveFrequency * 0.7 + other.waveOffset) * waveAmplitude * 0.5
+            );
+            ctx.strokeStyle = \`rgba(\${color}, \${lineOpacity})\`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        });
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    window.addEventListener("resize", resize);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", resize);
+    };
+  }, [count, speed, color, opacity, waveAmplitude, waveFrequency]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+      <canvas
+        ref={canvasRef}
+        className={\`w-full h-full \${className}\`}
+        style={{ display: 'block', width: '100%', height: '100%' }}
+      />
+    </div>
+  );
+}
+`
+    },
+  ];
+
+  // Add particle components to ui/particles folder (only used ones)
+  const basePath = isNextJs ? "components/ui/particles" : "src/components/ui/particles";
+  
+  const particleTypeMap: Record<string, string> = {
+    stars: "ParticleStars",
+    floating: "ParticleFloating",
+    bubbles: "ParticleBubbles",
+    dots: "ParticleDots",
+    waves: "ParticleWaves",
+  };
+  
+  const exportedComponents: string[] = [];
+  
+  particleComponents.forEach((component) => {
+    // Only export if this component type is used
+    const isUsed = Array.from(usedTypes).some(type => particleTypeMap[type] === component.name);
+    if (isUsed) {
+      zip.file(`${basePath}/${component.name}.tsx`, component.content);
+      exportedComponents.push(component.name);
+    }
+  });
+
+  // Add index file (only export used components)
+  if (exportedComponents.length > 0) {
+    const exports = exportedComponents.map(name => {
+      const importName = name.replace("Particle", "");
+      return `export { default as ${name} } from "./${name}";`;
+    }).join("\n");
+    
+    const indexContent = `/**
+ * Particle Background Components
+ * 
+ * Export particle animation components used in this template.
+ */
+
+${exports}
+`;
+
+    zip.file(`${basePath}/index.ts`, indexContent);
+  }
+}
+
 // ZIP Export Functions
 export async function exportNextJsZip(layout: any[]) {
   try {
@@ -1774,8 +2796,25 @@ export async function exportNextJsZip(layout: any[]) {
       throw new Error("No components were generated. Please check your layout.");
     }
 
-    // Add main page (Next.js pages need "use client" if they have interactive components)
-    const needsClientPage = pageCode.includes('testimonial') || pageCode.includes('data-particle') || pageCode.includes('HeroAnimated') || pageCode.includes('HeroModern');
+    // Add particle UI components (only those used in the layout)
+    await addParticleComponentsToZip(zip, layout, true);
+
+    // Add main page (Next.js pages need "use client" if they have interactive components or animations)
+    const hasAnimations = layout.some((block: any) => 
+      (block.props?.particleType && block.props.particleType !== "none") ||
+      block.props?.enableParticles ||
+      block.props?.enableGradientAnimation ||
+      block.props?.enableTextReveal
+    );
+    const needsClientPage = pageCode.includes('testimonial') || 
+                            pageCode.includes('data-particle') || 
+                            pageCode.includes('HeroAnimated') || 
+                            pageCode.includes('HeroModern') ||
+                            pageCode.includes('HeroAdvanced') ||
+                            pageCode.includes('motion') ||
+                            pageCode.includes('useEffect') ||
+                            pageCode.includes('viewport-animate') ||
+                            hasAnimations;
     const pageCodeWithClient = needsClientPage ? '"use client";\n\n' + pageCode : pageCode;
     zip.file("app/page.tsx", pageCodeWithClient);
     
@@ -1816,6 +2855,7 @@ const config: Config = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/ui/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
@@ -2030,6 +3070,9 @@ export async function exportReactZip(layout: any[]) {
       zip.file(`src/components/${name}.tsx`, code);
     });
 
+    // Add particle UI components (only those used in the layout)
+    await addParticleComponentsToZip(zip, layout, false);
+
     // Add main App component
     zip.file("src/App.tsx", pageCode);
     
@@ -2083,6 +3126,7 @@ ${generateStylesCSS()}
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
+    "./src/components/ui/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {},

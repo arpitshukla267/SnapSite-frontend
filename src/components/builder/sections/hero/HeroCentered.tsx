@@ -1,5 +1,6 @@
 "use client";
 import TextEditable from "../../TextEditable";
+import { ParticleStars, ParticleFloating, ParticleBubbles, ParticleDots, ParticleWaves } from "../../../ui/particles";
 
 export default function HeroCentered({ 
   title, 
@@ -15,6 +16,9 @@ export default function HeroCentered({
   buttonTextColor = "#ffffff",
   button2Background = "#64748b",
   button2TextColor = "#ffffff",
+  particleType = "stars",
+  particleColor = "255, 255, 255",
+  particleOpacity = 0.3,
 }) {
   const displayTitle = title || "Design That Inspires";
   const titleParts = displayTitle.split(" ");
@@ -28,11 +32,38 @@ export default function HeroCentered({
       }
     : { backgroundColor };
 
+  // Render particle background based on type
+  const renderParticleBackground = () => {
+    if (particleType === "none") return null;
+    
+    const commonProps = {
+      color: particleColor,
+      opacity: particleOpacity,
+    };
+
+    switch (particleType) {
+      case "stars":
+        return <ParticleStars count={100} speed={0.2} {...commonProps} />;
+      case "floating":
+        return <ParticleFloating count={50} speed={0.3} {...commonProps} />;
+      case "bubbles":
+        return <ParticleBubbles count={30} speed={0.5} {...commonProps} />;
+      case "dots":
+        return <ParticleDots count={200} speed={0.2} {...commonProps} />;
+      case "waves":
+        return <ParticleWaves count={80} speed={0.3} {...commonProps} />;
+      default:
+        return <ParticleStars count={100} speed={0.2} {...commonProps} />;
+    }
+  };
+
   return (
     <section 
       className="relative w-full min-h-[90vh] flex items-center justify-center text-center overflow-hidden"
       style={backgroundStyle}
     >
+      {/* Particle Background Animation */}
+      {particleType !== "none" && renderParticleBackground()}
       
       {/* Animated Background Pattern */}
       <div className="absolute inset-0 opacity-20 grid-pattern" />

@@ -103,16 +103,18 @@ export const sectionThemeFields: Record<string, ThemeField[]> = {
   heroAdvanced: [
     { type: "background", label: "Background Gradient", supportsGradient: true, defaultColor: "#0f172a", defaultGradient: ["#4f46e5", "#ec4899", "#22c55e"] },
     { type: "header", label: "Title", defaultColor: "#ffffff" },
-    { type: "subheader", label: "Subtitle", defaultColor: "#ffffff" },
+    { type: "subheader", label: "Subtitle", defaultColor: "rgba(255, 255, 255, 0.9)" },
     { type: "button", label: "Button", defaultColor: "#ffffff" },
     { type: "button2", label: "Button 2", defaultColor: "#ffffff" },
+    { type: "accent", label: "Badge & Highlight", defaultColor: "#8b5cf6" },
   ],
   heroAnimated: [
-    { type: "background", label: "Background Gradient", supportsGradient: true, defaultColor: "#0f172a", defaultGradient: ["#4f46e5", "#ec4899", "#f59e0b"] },
+    { type: "background", label: "Background Gradient", supportsGradient: true, defaultColor: "#0f172a", defaultGradient: ["#4f46e5", "#ec4899", "#3b82f6"] },
     { type: "header", label: "Title", defaultColor: "#ffffff" },
     { type: "subheader", label: "Subtitle", defaultColor: "#e2e8f0" },
     { type: "button", label: "Button", defaultColor: "#4f46e5" },
     { type: "button2", label: "Button 2", defaultColor: "transparent" },
+    { type: "accent", label: "Badge & Stats", defaultColor: "#ffffff" },
   ],
   heroModern: [
     { type: "background", label: "Background Gradient", supportsGradient: true, defaultColor: "#ffffff", defaultGradient: ["#f9fafb", "#ffffff"] },

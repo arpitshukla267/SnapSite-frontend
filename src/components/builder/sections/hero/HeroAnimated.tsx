@@ -2,6 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import TextEditable from "../../TextEditable";
 import { motion, useInView } from "framer-motion";
+import { useParticleCanvas, AnimatedGradientBackground, AnimatedGrid, FloatingOrbs } from "../../../../lib/animations/hooks";
+import { resolveBackgroundAnimation } from "../../../../lib/animations/resolver";
+import { getDefaultAnimationConfig, mergeAnimationConfig, BackgroundAnimationConfig } from "../../../../lib/animations/config";
+import { ParticleStars, ParticleFloating, ParticleBubbles, ParticleDots, ParticleWaves } from "../../../ui/particles";
 
 export default function HeroAnimated({
   title = "Build Amazing Websites",
@@ -17,6 +21,11 @@ export default function HeroAnimated({
   buttonTextColor = "#ffffff",
   button2Background = "transparent",
   button2TextColor = "#ffffff",
+  accentColor,
+  animationConfig,
+  particleType = "stars",
+  particleColor = "255, 255, 255",
+  particleOpacity = 0.2,
 }: {
   title?: string;
   subtitle?: string;
@@ -31,88 +40,55 @@ export default function HeroAnimated({
   buttonTextColor?: string;
   button2Background?: string;
   button2TextColor?: string;
+  accentColor?: string;
+  animationConfig?: BackgroundAnimationConfig;
+  particleType?: "stars" | "floating" | "bubbles" | "dots" | "waves" | "none";
+  particleColor?: string;
+  particleOpacity?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-  // Animated gradient background
-  const backgroundStyle = gradientColors && gradientColors.length >= 2
-    ? {
-        background: `linear-gradient(135deg, ${gradientColors.join(', ')})`,
-        backgroundSize: "400% 400%",
-        animation: "gradientShift 15s ease infinite",
-      }
-    : { backgroundColor };
+  // Get animation config (merge user config with defaults)
+  const defaultConfig = getDefaultAnimationConfig("heroAnimated");
+  const userConfig = animationConfig || {};
+  const mergedConfig = mergeAnimationConfig(userConfig, defaultConfig);
+  
+  // Override gradient colors if provided
+  if (gradientColors && gradientColors.length >= 2) {
+    mergedConfig.gradient = {
+      ...mergedConfig.gradient,
+      colors: gradientColors,
+    };
+  }
 
-  // Particle animation
+  // Use new animation hooks
+  useParticleCanvas(mergedConfig, canvasRef);
+  
+  // Resolve background styles
+  const [backgroundStyle, setBackgroundStyle] = useState<React.CSSProperties>(() => {
+    const resolved = resolveBackgroundAnimation(mergedConfig);
+    return resolved.style;
+  });
+
+  // Update background style on animation frame
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const particles: Array<{
-      x: number;
-      y: number;
-      radius: number;
-      vx: number;
-      vy: number;
-      opacity: number;
-    }> = [];
-
-    // Create particles
-    for (let i = 0; i < 50; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        radius: Math.random() * 2 + 1,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        opacity: Math.random() * 0.5 + 0.2,
-      });
-    }
-
     let animationFrameId: number;
-
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      particles.forEach((particle) => {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-
-        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
-        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity})`;
-        ctx.fill();
-      });
-
-      animationFrameId = requestAnimationFrame(animate);
+    
+    const updateStyle = () => {
+      const resolved = resolveBackgroundAnimation(mergedConfig);
+      setBackgroundStyle(resolved.style);
+      animationFrameId = requestAnimationFrame(updateStyle);
     };
 
-    animate();
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener("resize", handleResize);
+    animationFrameId = requestAnimationFrame(updateStyle);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [mergedConfig]);
 
   // Mouse tracking for parallax
   useEffect(() => {
@@ -127,79 +103,55 @@ export default function HeroAnimated({
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  const accentRgba = (alpha: number) => {
+    if (!accentColor) return `rgba(255, 255, 255, ${alpha})`;
+    if (accentColor.startsWith('#')) {
+      const r = parseInt(accentColor.slice(1, 3), 16);
+      const g = parseInt(accentColor.slice(3, 5), 16);
+      const b = parseInt(accentColor.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    return `${accentColor}${Math.round(alpha * 100)}`;
+  };
+
   return (
     <>
-      <style jsx>{`
-        @keyframes gradientShift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-      `}</style>
       <section
         ref={ref}
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
-        style={backgroundStyle}
+        style={gradientColors && gradientColors.length >= 2 ? {} : { backgroundColor: backgroundColor }}
       >
+        {/* Animated Gradient Background - Must be first layer */}
+        {gradientColors && gradientColors.length >= 2 ? (
+          <AnimatedGradientBackground config={mergedConfig} />
+        ) : (
+          <div className="absolute inset-0" style={{ backgroundColor: backgroundColor }} />
+        )}
+
         {/* Animated Canvas Particles */}
         <canvas
           ref={canvasRef}
+          id="particle-canvas-hero-animated"
           className="absolute inset-0 opacity-30"
-          style={{ zIndex: 1 }}
+          style={{ zIndex: 1, pointerEvents: "none" }}
         />
 
         {/* Animated Grid Background */}
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: "50px 50px",
-            animation: "gridMove 20s linear infinite",
-            zIndex: 1,
-          }}
-        />
+        <AnimatedGrid config={mergedConfig} />
 
         {/* Floating Orbs */}
-        <div className="absolute inset-0 overflow-hidden" style={{ zIndex: 1 }}>
-          <motion.div
-            className="absolute w-96 h-96 rounded-full blur-3xl opacity-20"
-            style={{
-              background: "radial-gradient(circle, rgba(79, 70, 229, 0.4), transparent)",
-              left: "10%",
-              top: "20%",
-            }}
-            animate={{
-              x: [0, 50, 0],
-              y: [0, 30, 0],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          <motion.div
-            className="absolute w-96 h-96 rounded-full blur-3xl opacity-20"
-            style={{
-              background: "radial-gradient(circle, rgba(236, 72, 153, 0.4), transparent)",
-              right: "10%",
-              bottom: "20%",
-            }}
-            animate={{
-              x: [0, -50, 0],
-              y: [0, -30, 0],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        </div>
+        <FloatingOrbs config={mergedConfig} />
+
+        {/* Additional Particle Background Animation */}
+        {particleType !== "none" && (
+          <>
+            {particleType === "stars" && <ParticleStars count={100} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+            {particleType === "floating" && <ParticleFloating count={50} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+            {particleType === "bubbles" && <ParticleBubbles count={30} speed={0.5} color={particleColor} opacity={particleOpacity} />}
+            {particleType === "dots" && <ParticleDots count={200} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+            {particleType === "waves" && <ParticleWaves count={80} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+          </>
+        )}
 
         {/* Content */}
         <div
@@ -213,7 +165,7 @@ export default function HeroAnimated({
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            {/* Badge */}
+            {/* Badge with glow effect */}
             <motion.div
               className="inline-block mb-8"
               initial={{ opacity: 0, scale: 0.8 }}
@@ -221,31 +173,74 @@ export default function HeroAnimated({
               transition={{ delay: 0.2, duration: 0.5 }}
             >
               <span
-                className="px-6 py-2 rounded-full text-sm font-semibold backdrop-blur-md border"
+                className="px-6 py-3 rounded-full text-sm font-semibold backdrop-blur-md border relative overflow-hidden"
                 style={{
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  borderColor: "rgba(255, 255, 255, 0.2)",
-                  color: titleColor,
+                  backgroundColor: accentRgba(0.15),
+                  borderColor: accentRgba(0.3),
+                  color: accentColor || titleColor,
+                  boxShadow: `0 0 30px ${accentRgba(0.3)}, inset 0 0 20px ${accentRgba(0.1)}`,
                 }}
               >
-                ✨ New: AI-Powered Builder
+                <span className="relative z-10 flex items-center gap-2">
+                  <motion.span
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  >
+                    
+                  </motion.span>
+                  <TextEditable onClick={() => onEdit?.("badge")}>
+                    New: AI-Powered Builder
+                  </TextEditable>
+                </span>
+                <motion.div
+                  className="absolute inset-0 opacity-50"
+                  style={{
+                    background: `linear-gradient(90deg, transparent, ${accentRgba(0.3)}, transparent)`,
+                  }}
+                  animate={{ x: ["-100%", "100%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
               </span>
             </motion.div>
 
-            {/* Title with animated reveal */}
+            {/* Title with gradient text effect */}
             <motion.h1
-              className="text-5xl @sm:text-6xl @md:text-7xl @lg:text-8xl font-extrabold mb-6 leading-tight"
-              style={{ color: titleColor }}
+              className="text-5xl @sm:text-6xl @md:text-7xl @lg:text-8xl font-extrabold mb-6 leading-tight relative"
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
-              <TextEditable onClick={() => onEdit?.("title")}>
-                {title}
-              </TextEditable>
+              <span
+                className="relative inline-block"
+                style={{
+                  background: gradientColors && gradientColors.length >= 2
+                    ? `linear-gradient(135deg, ${titleColor}, ${gradientColors[1]}, ${titleColor})`
+                    : titleColor,
+                  backgroundSize: "200% 200%",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                <TextEditable onClick={() => onEdit?.("title")}>
+                  {title}
+                </TextEditable>
+              </span>
+              {/* Decorative underline */}
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 h-1 rounded-full"
+                style={{
+                  background: gradientColors && gradientColors.length >= 2
+                    ? `linear-gradient(90deg, ${gradientColors[0]}, ${gradientColors[1]})`
+                    : accentColor || titleColor,
+                }}
+                initial={{ scaleX: 0 }}
+                animate={isInView ? { scaleX: 1 } : {}}
+                transition={{ delay: 0.6, duration: 0.8 }}
+              />
             </motion.h1>
 
-            {/* Subtitle */}
+            {/* Subtitle with enhanced styling */}
             <motion.p
               className="text-xl @md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed"
               style={{ color: subtitleColor }}
@@ -258,9 +253,9 @@ export default function HeroAnimated({
               </TextEditable>
             </motion.p>
 
-            {/* Buttons */}
+            {/* Buttons with enhanced design */}
             <motion.div
-              className="flex flex-col @sm:flex-row gap-6 justify-center items-center"
+              className="flex flex-col @sm:flex-row gap-6 justify-center items-center mb-16"
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.7, duration: 0.8 }}
@@ -268,7 +263,7 @@ export default function HeroAnimated({
               <motion.button
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-10 py-5 rounded-2xl text-lg font-bold shadow-2xl transition-all duration-300 relative overflow-hidden group"
+                className="group relative px-10 py-5 rounded-2xl text-lg font-bold shadow-2xl transition-all duration-300 overflow-hidden"
                 style={{
                   background: buttonBackground,
                   color: buttonTextColor,
@@ -280,6 +275,13 @@ export default function HeroAnimated({
                   </TextEditable>
                 </span>
                 <motion.div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100"
+                  style={{
+                    background: `linear-gradient(135deg, ${buttonBackground}dd, ${buttonBackground}ff)`,
+                  }}
+                  transition={{ duration: 0.3 }}
+                />
+                <motion.div
                   className="absolute inset-0 bg-white/20"
                   initial={{ x: "-100%" }}
                   whileHover={{ x: "100%" }}
@@ -287,40 +289,77 @@ export default function HeroAnimated({
                 />
               </motion.button>
 
-              <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-10 py-5 rounded-2xl text-lg font-bold border-2 backdrop-blur-md transition-all duration-300"
-                style={{
-                  background: button2Background,
-                  color: button2TextColor,
-                  borderColor: button2TextColor,
-                }}
-              >
-                <TextEditable onClick={() => onEdit?.("buttonText2")}>
-                  {buttonText2}
-                </TextEditable>
-              </motion.button>
+              {buttonText2 && (
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-10 py-5 rounded-2xl text-lg font-bold border-2 backdrop-blur-md transition-all duration-300 relative overflow-hidden group"
+                  style={{
+                    background: button2Background,
+                    color: button2TextColor,
+                    borderColor: button2TextColor,
+                  }}
+                >
+                  <span className="relative z-10">
+                    <TextEditable onClick={() => onEdit?.("buttonText2")}>
+                      {buttonText2}
+                    </TextEditable>
+                  </span>
+                  <motion.div
+                    className="absolute inset-0 bg-white/10"
+                    initial={{ scale: 0 }}
+                    whileHover={{ scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </motion.button>
+              )}
             </motion.div>
 
-            {/* Stats */}
+            {/* Enhanced Stats with glassmorphism cards */}
             <motion.div
-              className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto"
+              className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto"
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.9, duration: 0.8 }}
             >
               {[
-                { number: "10K+", label: "Active Users" },
-                { number: "500+", label: "Templates" },
-                { number: "99%", label: "Satisfaction" },
+                { number: "10K+", label: "Active Users", icon: "👥" },
+                { number: "500+", label: "Templates", icon: "🎨" },
+                { number: "99%", label: "Satisfaction", icon: "⭐" },
+                { number: "24/7", label: "Support", icon: "💬" },
               ].map((stat, index) => (
                 <motion.div
                   key={index}
-                  className="text-center"
-                  whileHover={{ scale: 1.1, y: -5 }}
+                  className="text-center p-6 rounded-2xl backdrop-blur-md border relative overflow-hidden group"
+                  style={{
+                    backgroundColor: accentRgba(0.1),
+                    borderColor: accentRgba(0.2),
+                  }}
+                  whileHover={{ 
+                    scale: 1.05, 
+                    y: -5,
+                    backgroundColor: accentRgba(0.15),
+                    borderColor: accentRgba(0.3),
+                  }}
                   transition={{ type: "spring", stiffness: 300 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                  transition={{ delay: 1 + index * 0.1, duration: 0.5 }}
                 >
+                  <motion.div
+                    className="text-4xl mb-3"
+                    animate={{ 
+                      y: [0, -5, 0],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{ 
+                      duration: 2 + index * 0.5, 
+                      repeat: Infinity,
+                      delay: index * 0.2
+                    }}
+                  >
+                    {stat.icon}
+                  </motion.div>
                   <div
                     className="text-3xl @md:text-4xl font-bold mb-2"
                     style={{ color: titleColor }}
@@ -328,30 +367,40 @@ export default function HeroAnimated({
                     {stat.number}
                   </div>
                   <div
-                    className="text-sm @md:text-base"
+                    className="text-sm @md:text-base font-medium"
                     style={{ color: subtitleColor }}
                   >
                     {stat.label}
                   </div>
+                  {/* Glow effect on hover */}
+                  <motion.div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{
+                      background: `radial-gradient(circle at center, ${accentRgba(0.2)}, transparent)`,
+                    }}
+                  />
                 </motion.div>
               ))}
             </motion.div>
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
+        {/* Enhanced Scroll Indicator */}
         <motion.div
-          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10"
+          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10 cursor-pointer"
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
           <div
-            className="w-6 h-10 rounded-full border-2 flex justify-center p-2"
-            style={{ borderColor: titleColor }}
+            className="w-6 h-10 rounded-full border-2 flex justify-center p-2 backdrop-blur-md"
+            style={{ 
+              borderColor: accentColor || titleColor,
+              backgroundColor: accentRgba(0.1),
+            }}
           >
             <motion.div
               className="w-1 h-3 rounded-full"
-              style={{ backgroundColor: titleColor }}
+              style={{ backgroundColor: accentColor || titleColor }}
               animate={{ y: [0, 12, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             />

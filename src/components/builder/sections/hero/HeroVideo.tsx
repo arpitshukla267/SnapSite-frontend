@@ -1,7 +1,18 @@
 "use client";
 import TextEditable from "../../TextEditable";
+import { ParticleStars, ParticleFloating, ParticleBubbles, ParticleDots, ParticleWaves } from "../../../ui/particles";
 
-export default function HeroVideo({ title, subtitle, buttonText, buttonText2, videoUrl, onEdit }) {
+export default function HeroVideo({ 
+  title, 
+  subtitle, 
+  buttonText, 
+  buttonText2, 
+  videoUrl, 
+  onEdit,
+  particleType = "stars",
+  particleColor = "255, 255, 255",
+  particleOpacity = 0.3,
+}) {
   return (
     <section className="relative w-full h-[90vh] flex items-center justify-center text-center overflow-hidden">
       
@@ -18,6 +29,17 @@ export default function HeroVideo({ title, subtitle, buttonText, buttonText2, vi
         </video>
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900" />
+      )}
+
+      {/* Particle Background Animation (behind video overlay) */}
+      {particleType !== "none" && (
+        <>
+          {particleType === "stars" && <ParticleStars count={100} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "floating" && <ParticleFloating count={50} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "bubbles" && <ParticleBubbles count={30} speed={0.5} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "dots" && <ParticleDots count={200} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "waves" && <ParticleWaves count={80} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+        </>
       )}
 
       {/* Dark Gradient Overlay for Text Readability */}

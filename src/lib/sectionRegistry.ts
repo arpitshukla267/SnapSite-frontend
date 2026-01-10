@@ -155,10 +155,12 @@ export const SectionRegistry = {
     ========================== */
     component: HeroAdvanced,
     defaultProps: {
-      title: "Build Something Amazing",
-      subtitle: "Create stunning websites with our powerful builder. No coding required.",
-      buttonText: "Get Started",
+      title: "Showcase Your Work",
+      subtitle: "Beautiful portfolios with stunning animations and interactions.",
+      buttonText: "View Portfolio",
       buttonText2: "Learn More",
+      badge: "Premium Experience",
+      features: ["No Code Required", "AI-Powered", "Fully Responsive", "SEO Optimized", "Fast Loading"],
       enableParticles: true,
       enableGradientAnimation: true,
       enableTextReveal: true,
@@ -173,29 +175,97 @@ export const SectionRegistry = {
         name: "HeroAdvanced",
         path: "@/components/HeroAdvanced",
       },
-      html: (props) => `
-<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, var(--theme-primary, #4f46e5) 0%, var(--theme-secondary, #ec4899) 50%, var(--theme-accent, #60a5fa) 100%);" data-section="hero-advanced">
+      html: (props) => {
+        const bgColor = props.backgroundColor || '#0f172a';
+        const titleColor = props.titleColor || '#ffffff';
+        const subtitleColor = props.subtitleColor || 'rgba(255, 255, 255, 0.9)';
+        const buttonBg = props.buttonBackground || '#ffffff';
+        const buttonText = props.buttonTextColor || '#1f2937';
+        const button2Bg = props.button2Background || 'transparent';
+        const button2Text = props.button2TextColor || '#ffffff';
+        const accentColor = props.accentColor || '#8b5cf6';
+        const gradientColors = props.gradientColors || ['#4f46e5', '#ec4899', '#22c55e'];
+        const hasGradient = gradientColors && gradientColors.length >= 2;
+        const enableParticles = props.enableParticles !== false;
+        const enableGradientAnimation = props.enableGradientAnimation !== false;
+        
+        // Helper to convert hex to rgba
+        const hexToRgba = (hex: string, alpha: number): string => {
+          if (!hex || !hex.startsWith('#')) return `${hex}${Math.round(alpha * 100)}`;
+          const r = parseInt(hex.slice(1, 3), 16);
+          const g = parseInt(hex.slice(3, 5), 16);
+          const b = parseInt(hex.slice(5, 7), 16);
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+        
+        const accentRgba20 = accentColor ? (accentColor.startsWith('#') ? hexToRgba(accentColor, 0.2) : `${accentColor}20`) : 'rgba(139, 92, 246, 0.2)';
+        const accentRgba30 = accentColor ? (accentColor.startsWith('#') ? hexToRgba(accentColor, 0.3) : `${accentColor}30`) : 'rgba(139, 92, 246, 0.3)';
+        const accentRgba50 = accentColor ? (accentColor.startsWith('#') ? hexToRgba(accentColor, 0.5) : `${accentColor}50`) : 'rgba(139, 92, 246, 0.5)';
+        const accentRgba40 = accentColor ? (accentColor.startsWith('#') ? hexToRgba(accentColor, 0.4) : `${accentColor}40`) : 'rgba(139, 92, 246, 0.4)';
+        const accentRgba80 = accentColor ? (accentColor.startsWith('#') ? hexToRgba(accentColor, 0.8) : `${accentColor}80`) : 'rgba(255, 255, 255, 0.5)';
+        
+        return `<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="${hasGradient && enableGradientAnimation ? '' : `background-color: ${bgColor};`}" data-section="hero-advanced"${hasGradient && enableGradientAnimation ? ' data-animated-gradient="true" data-gradient-duration="18" data-gradient-easing="ease-in-out"' : ''}>
+  ${hasGradient && enableGradientAnimation ? `<!-- Animated Gradient Background (will be animated by JS) -->
+  <div class="absolute inset-0" style="background-image: linear-gradient(135deg, ${gradientColors.join(', ')}); background-size: 400% 400%; background-position: 0% 50%;"></div>` : ''}
+  
+  ${enableParticles ? `<!-- Particle Canvas (will be initialized by JS) -->
+  <canvas data-particle id="particle-canvas-hero-advanced" class="absolute inset-0 w-full h-full opacity-30" style="pointer-events: none; z-index: 1;"></canvas>` : ''}
+  
+  <!-- Animated Grid Background (will be animated by JS) -->
+  <div class="absolute inset-0 opacity-10" data-animated-grid="true" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 50px 50px; z-index: 1;"></div>
+  
+  <!-- Floating Orbs (will be animated by JS) -->
+  <div class="absolute inset-0 overflow-hidden" style="z-index: 1;">
+    <div class="absolute w-32 h-32 rounded-full blur-2xl opacity-30 float-orb" data-orb-index="0" data-orb-duration="8" data-orb-delay="0" style="background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent); left: 20%; top: 30%; transform: translate(0px, 0px) scale(1);"></div>
+    <div class="absolute w-32 h-32 rounded-full blur-2xl opacity-30 float-orb" data-orb-index="1" data-orb-duration="8" data-orb-delay="0.5" style="background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent); left: 35%; top: 70%; transform: translate(0px, 0px) scale(1);"></div>
+    <div class="absolute w-32 h-32 rounded-full blur-2xl opacity-20 float-orb" data-orb-index="2" data-orb-duration="8" data-orb-delay="1" style="background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent); left: 50%; top: 30%; transform: translate(0px, 0px) scale(1);"></div>
+    <div class="absolute w-32 h-32 rounded-full blur-2xl opacity-20 float-orb" data-orb-index="3" data-orb-duration="8" data-orb-delay="1.5" style="background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent); left: 65%; top: 70%; transform: translate(0px, 0px) scale(1);"></div>
+    <div class="absolute w-32 h-32 rounded-full blur-2xl opacity-10 float-orb" data-orb-index="4" data-orb-duration="8" data-orb-delay="2" style="background: radial-gradient(circle, rgba(255, 255, 255, 0.05), transparent); left: 80%; top: 30%; transform: translate(0px, 0px) scale(1);"></div>
+  </div>
+  
   <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
-    <div class="mb-6 inline-block">
-      <span class="px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-sm font-semibold">
-        ✨ Premium Experience
+    <!-- Enhanced Badge -->
+    <div class="mb-8 inline-block viewport-animate">
+      <span class="px-6 py-3 rounded-full backdrop-blur-md border text-sm font-semibold relative overflow-hidden" style="background-color: ${accentRgba30}; border-color: ${accentRgba50}; color: ${titleColor}; box-shadow: 0 0 30px ${accentRgba40}, inset 0 0 20px ${accentRgba20};">
+        <span class="relative z-10 flex items-center gap-2">
+          <span>✨</span>
+          <span>${props.badge || "Premium Experience"}</span>
+        </span>
       </span>
     </div>
-    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold text-white mb-6 leading-tight">
-      ${props.title || "Build Something Amazing"}
+    
+    <!-- Title with enhanced highlight -->
+    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight viewport-animate relative" style="color: ${titleColor};">
+      <span class="relative inline-block px-6 py-3 rounded-2xl" style="background-color: ${accentRgba30}; box-shadow: 0 0 40px ${accentRgba40}, inset 0 0 30px ${accentRgba20};">
+        ${props.title || "Showcase Your Work"}
+      </span>
     </h1>
-    <p class="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-10 leading-relaxed">
-      ${props.subtitle || "Create stunning websites with our powerful builder. No coding required."}
+    <p class="text-xl md:text-2xl max-w-3xl mx-auto mb-10 leading-relaxed viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">
+      ${props.subtitle || "Beautiful portfolios with stunning animations and interactions."}
     </p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-      <button class="px-8 py-4 bg-white text-gray-900 rounded-xl text-lg font-semibold shadow-2xl hover:scale-105 transition-transform">
-        ${props.buttonText || "Get Started"}
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center viewport-animate-scale" style="animation-delay: 0.4s;">
+      <button class="px-8 py-4 rounded-xl text-lg font-semibold shadow-2xl hover-scale transition-all" style="background: ${buttonBg}; color: ${buttonText};">
+        ${props.buttonText || "View Portfolio"}
       </button>
-      ${props.buttonText2 ? `<button class="px-8 py-4 bg-transparent border-2 border-white/30 text-white rounded-xl text-lg font-semibold backdrop-blur-md">${props.buttonText2}</button>` : ''}
+      ${props.buttonText2 ? `<button class="px-8 py-4 border-2 rounded-xl text-lg font-semibold backdrop-blur-md hover-scale transition-all" style="background: ${button2Bg}; color: ${button2Text}; border-color: rgba(255, 255, 255, 0.3);">${props.buttonText2}</button>` : ''}
+    </div>
+    
+    <!-- Feature Pills -->
+    <div class="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto viewport-animate" style="animation-delay: 0.8s;">
+      ${(props.features || ["No Code Required", "AI-Powered", "Fully Responsive", "SEO Optimized", "Fast Loading"]).map((feature: string) => 
+        `<span class="px-5 py-2.5 rounded-full backdrop-blur-md border text-sm font-medium" style="background-color: ${accentRgba30}; border-color: ${accentRgba50}; color: ${titleColor};">✓ ${feature}</span>`
+      ).join('\n      ')}
+    </div>
+    
+    <!-- Enhanced Scroll Indicator -->
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-10">
+      <div class="w-6 h-10 border-2 rounded-full flex justify-center p-2 backdrop-blur-md animate-float" style="border-color: ${accentRgba50}; background-color: ${accentRgba20};">
+        <div class="w-1 h-3 rounded-full animate-float" style="background-color: ${accentColor || 'rgba(255, 255, 255, 0.5)'}; animation-delay: 0.5s;"></div>
+      </div>
     </div>
   </div>
-</section>
-      `,
+</section>`;
+      },
     },
   },
 
@@ -1768,40 +1838,124 @@ export const SectionRegistry = {
       subtitle: "Create stunning, responsive websites in minutes",
       buttonText: "Get Started",
       buttonText2: "Learn More",
+      particleType: "stars",
+      particleColor: "255, 255, 255",
+      particleOpacity: 0.2,
     },
     variant: "advanced",
     export: {
       react: { name: "HeroAnimated", path: "@/components/HeroAnimated" },
       next: { name: "HeroAnimated", path: "@/components/HeroAnimated" },
       html: (props) => {
-        const bgStyle = props.gradientColors && props.gradientColors.length >= 2
-          ? `background: linear-gradient(135deg, ${props.gradientColors.join(', ')}); background-size: 400% 400%; animation: gradientShift 15s ease infinite;`
-          : `background: ${props.backgroundColor || '#0f172a'};`;
+        const bgColor = props.backgroundColor || '#0f172a';
         const titleColor = props.titleColor || '#ffffff';
         const subtitleColor = props.subtitleColor || '#e2e8f0';
         const buttonBg = props.buttonBackground || '#4f46e5';
         const buttonText = props.buttonTextColor || '#ffffff';
         const button2Bg = props.button2Background || 'transparent';
         const button2Text = props.button2TextColor || '#ffffff';
-        return `<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="${bgStyle}" data-section="hero-animated">
-  <!-- Particle Canvas -->
-  <canvas data-particle class="absolute inset-0 w-full h-full opacity-30" style="pointer-events: none; z-index: 1;"></canvas>
+        const accentColor = props.accentColor || '#ffffff';
+        const gradientColors = props.gradientColors || ['#4f46e5', '#ec4899', '#3b82f6'];
+        const hasGradient = gradientColors && gradientColors.length >= 2;
+        
+        // Helper to convert hex to rgba
+        const hexToRgba = (hex: string, alpha: number): string => {
+          if (!hex || !hex.startsWith('#')) return `${hex}${Math.round(alpha * 100)}`;
+          const r = parseInt(hex.slice(1, 3), 16);
+          const g = parseInt(hex.slice(3, 5), 16);
+          const b = parseInt(hex.slice(5, 7), 16);
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+        
+        const accentRgba20 = accentColor ? (accentColor.startsWith('#') ? hexToRgba(accentColor, 0.2) : `${accentColor}20`) : 'rgba(255, 255, 255, 0.1)';
+        const accentRgba40 = accentColor ? (accentColor.startsWith('#') ? hexToRgba(accentColor, 0.4) : `${accentColor}40`) : 'rgba(255, 255, 255, 0.2)';
+        const accentRgba50 = accentColor ? (accentColor.startsWith('#') ? hexToRgba(accentColor, 0.5) : `${accentColor}50`) : 'rgba(255, 255, 255, 0.5)';
+        
+        const particleType = props.particleType || "stars";
+        const particleColor = props.particleColor || "255, 255, 255";
+        const particleOpacity = props.particleOpacity || 0.2;
+        
+        const renderParticleHtml = (type: string, color: string, opacity: number) => {
+          if (type === "none") return '';
+          const particleMap: Record<string, string> = {
+            stars: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-stars data-count="100" data-speed="0.2" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+            floating: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-floating data-count="50" data-speed="0.3" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+            bubbles: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-bubbles data-count="30" data-speed="0.5" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+            dots: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-dots data-count="200" data-speed="0.2" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+            waves: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-waves data-count="80" data-speed="0.3" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+          };
+          return particleMap[type] || '';
+        };
+        
+        return `<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="${hasGradient ? '' : `background-color: ${bgColor};`}" data-section="hero-animated"${hasGradient ? ' data-animated-gradient="true" data-gradient-duration="15" data-gradient-easing="ease"' : ''}>
+  ${hasGradient ? `<!-- Animated Gradient Background (will be animated by JS) -->
+  <div class="absolute inset-0" style="background-image: linear-gradient(135deg, ${gradientColors.join(', ')}); background-size: 400% 400%; background-position: 0% 50%;"></div>` : ''}
   
-  <!-- Animated Grid Background -->
-  <div class="absolute inset-0 opacity-10 animate-grid" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 50px 50px; z-index: 1;"></div>
+  <!-- Particle Canvas (will be initialized by JS) -->
+  <canvas data-particle id="particle-canvas-hero-animated" class="absolute inset-0 w-full h-full opacity-30" style="pointer-events: none; z-index: 1;"></canvas>
   
-  <!-- Floating Orbs -->
+  <!-- Animated Grid Background (will be animated by JS) -->
+  <div class="absolute inset-0 opacity-10" data-animated-grid="true" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 50px 50px; z-index: 1;"></div>
+  
+  <!-- Floating Orbs (will be animated by JS) -->
   <div class="absolute inset-0 overflow-hidden" style="z-index: 1;">
-    <div class="absolute w-96 h-96 rounded-full blur-3xl opacity-20 float-orb-1" style="background: radial-gradient(circle, rgba(79, 70, 229, 0.4), transparent); left: 10%; top: 20%;"></div>
-    <div class="absolute w-96 h-96 rounded-full blur-3xl opacity-20 float-orb-2" style="background: radial-gradient(circle, rgba(236, 72, 153, 0.4), transparent); right: 10%; bottom: 20%;"></div>
+    <div class="absolute w-96 h-96 rounded-full blur-3xl opacity-20 float-orb" data-orb-index="0" data-orb-duration="8" data-orb-delay="0" style="background: radial-gradient(circle, rgba(79, 70, 229, 0.4), transparent); left: 10%; top: 20%; transform: translate(0px, 0px) scale(1);"></div>
+    <div class="absolute w-96 h-96 rounded-full blur-3xl opacity-20 float-orb" data-orb-index="1" data-orb-duration="8" data-orb-delay="0.5" style="background: radial-gradient(circle, rgba(236, 72, 153, 0.4), transparent); right: 10%; bottom: 20%; transform: translate(0px, 0px) scale(1);"></div>
   </div>
   
+  ${renderParticleHtml(particleType, particleColor, particleOpacity)}
+  
   <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
-    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 viewport-animate" style="color: ${titleColor};">${props.title || "Build Amazing Websites"}</h1>
-    <p class="text-xl md:text-2xl mb-10 max-w-3xl mx-auto viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">${props.subtitle || "Create stunning, responsive websites in minutes"}</p>
-    <div class="flex flex-col sm:flex-row gap-6 justify-center viewport-animate-scale" style="animation-delay: 0.4s;">
-      <button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold shadow-2xl hover-scale transition-all" style="background: ${buttonBg}; color: ${buttonText};">${props.buttonText || "Get Started"}</button>
-      ${props.buttonText2 ? `<button class="px-10 py-5 rounded-2xl text-lg md:text-xl font-bold border-2 hover-scale transition-all" style="background: ${button2Bg}; color: ${button2Text}; border-color: ${button2Text};">${props.buttonText2}</button>` : ''}
+    <!-- Enhanced Badge -->
+    <div class="inline-block mb-8 viewport-animate">
+      <span class="px-6 py-3 rounded-full text-sm font-semibold backdrop-blur-md border relative overflow-hidden" style="background-color: ${accentRgba20}; border-color: ${accentRgba40}; color: ${accentColor || titleColor}; box-shadow: 0 0 30px ${accentRgba40}, inset 0 0 20px ${accentRgba20};">
+        <span class="relative z-10 flex items-center gap-2">
+          <span>✨</span>
+          <span>New: AI-Powered Builder</span>
+        </span>
+      </span>
+    </div>
+    
+    <!-- Title with gradient text and decorative underline -->
+    <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight viewport-animate relative" style="color: ${titleColor};">
+      <span class="relative inline-block">${props.title || "Build Amazing Websites"}</span>
+      <div class="absolute bottom-0 left-0 right-0 h-1 rounded-full viewport-animate" style="background: ${gradientColors && gradientColors.length >= 2 ? `linear-gradient(90deg, ${gradientColors[0]}, ${gradientColors[1]})` : (accentColor || titleColor)}; animation-delay: 0.6s;"></div>
+    </h1>
+    <p class="text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed viewport-animate" style="color: ${subtitleColor}; animation-delay: 0.2s;">${props.subtitle || "Create stunning, responsive websites in minutes"}</p>
+    <div class="flex flex-col sm:flex-row gap-6 justify-center items-center viewport-animate-scale" style="animation-delay: 0.4s;">
+      <button class="px-10 py-5 rounded-2xl text-lg font-bold shadow-2xl hover-scale transition-all" style="background: ${buttonBg}; color: ${buttonText};">${props.buttonText || "Get Started"}</button>
+      ${props.buttonText2 ? `<button class="px-10 py-5 rounded-2xl text-lg font-bold border-2 backdrop-blur-md hover-scale transition-all" style="background: ${button2Bg}; color: ${button2Text}; border-color: ${button2Text};">${props.buttonText2}</button>` : ''}
+    </div>
+    
+    <!-- Enhanced Stats with glassmorphism cards -->
+    <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto viewport-animate" style="animation-delay: 0.6s;">
+      <div class="text-center p-6 rounded-2xl backdrop-blur-md border relative overflow-hidden group" style="background-color: ${accentRgba20}; border-color: ${accentRgba40};">
+        <div class="text-4xl mb-3">👥</div>
+        <div class="text-3xl md:text-4xl font-bold mb-2" style="color: ${titleColor};">10K+</div>
+        <div class="text-sm md:text-base font-medium" style="color: ${subtitleColor};">Active Users</div>
+      </div>
+      <div class="text-center p-6 rounded-2xl backdrop-blur-md border relative overflow-hidden group" style="background-color: ${accentRgba20}; border-color: ${accentRgba40};">
+        <div class="text-4xl mb-3">🎨</div>
+        <div class="text-3xl md:text-4xl font-bold mb-2" style="color: ${titleColor};">500+</div>
+        <div class="text-sm md:text-base font-medium" style="color: ${subtitleColor};">Templates</div>
+      </div>
+      <div class="text-center p-6 rounded-2xl backdrop-blur-md border relative overflow-hidden group" style="background-color: ${accentRgba20}; border-color: ${accentRgba40};">
+        <div class="text-4xl mb-3">⭐</div>
+        <div class="text-3xl md:text-4xl font-bold mb-2" style="color: ${titleColor};">99%</div>
+        <div class="text-sm md:text-base font-medium" style="color: ${subtitleColor};">Satisfaction</div>
+      </div>
+      <div class="text-center p-6 rounded-2xl backdrop-blur-md border relative overflow-hidden group" style="background-color: ${accentRgba20}; border-color: ${accentRgba40};">
+        <div class="text-4xl mb-3">💬</div>
+        <div class="text-3xl md:text-4xl font-bold mb-2" style="color: ${titleColor};">24/7</div>
+        <div class="text-sm md:text-base font-medium" style="color: ${subtitleColor};">Support</div>
+      </div>
+    </div>
+    
+    <!-- Enhanced Scroll Indicator -->
+    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10">
+      <div class="w-6 h-10 rounded-full border-2 flex justify-center p-2 backdrop-blur-md animate-float" style="border-color: ${accentRgba50}; background-color: ${accentRgba20};">
+        <div class="w-1 h-3 rounded-full animate-float" style="background-color: ${accentColor || titleColor}; animation-delay: 0.5s;"></div>
+      </div>
     </div>
   </div>
 </section>`;
@@ -1816,6 +1970,9 @@ export const SectionRegistry = {
       subtitle: "The most powerful website builder for modern businesses",
       buttonText: "Start Building",
       buttonText2: "Watch Demo",
+      particleType: "floating",
+      particleColor: "79, 70, 229",
+      particleOpacity: 0.2,
     },
     variant: "advanced",
     export: {
@@ -1832,7 +1989,25 @@ export const SectionRegistry = {
         const button2Bg = props.button2Background || '#f1f5f9';
         const button2Text = props.button2TextColor || '#0f172a';
         const accentColor = props.accentColor || '#4f46e5';
+        const particleType = props.particleType || "floating";
+        const particleColor = props.particleColor || "79, 70, 229";
+        const particleOpacity = props.particleOpacity || 0.2;
+        
+        const renderParticleHtml = (type: string, color: string, opacity: number) => {
+          if (type === "none") return '';
+          const particleMap: Record<string, string> = {
+            stars: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-stars data-count="100" data-speed="0.2" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+            floating: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-floating data-count="50" data-speed="0.3" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+            bubbles: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-bubbles data-count="30" data-speed="0.5" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+            dots: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-dots data-count="200" data-speed="0.2" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+            waves: `<div class="absolute inset-0 pointer-events-none" style="z-index: 1;"><canvas data-particle-waves data-count="80" data-speed="0.3" data-color="${color}" data-opacity="${opacity}" class="w-full h-full"></canvas></div>`,
+          };
+          return particleMap[type] || '';
+        };
+        
         return `<section class="relative min-h-screen flex items-center justify-center overflow-hidden" style="${bgStyle}" data-section="hero-modern">
+  ${renderParticleHtml(particleType, particleColor, particleOpacity)}
+  
   <!-- Animated Wave Background -->
   <div class="absolute inset-0 overflow-hidden opacity-20" style="z-index: 1;">
     <svg class="absolute bottom-0 w-full h-full" viewBox="0 0 1440 320" preserveAspectRatio="none">

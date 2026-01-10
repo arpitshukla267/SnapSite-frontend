@@ -1,10 +1,32 @@
 "use client";
 import TextEditable from "../../TextEditable";
+import { ParticleStars, ParticleFloating, ParticleBubbles, ParticleDots, ParticleWaves } from "../../../ui/particles";
 
-export default function HeroSplit({ title, subtitle, buttonText, image, onEdit, editable = true }) {
+export default function HeroSplit({ 
+  title, 
+  subtitle, 
+  buttonText, 
+  image, 
+  onEdit, 
+  editable = true,
+  particleType = "floating",
+  particleColor = "139, 92, 246",
+  particleOpacity = 0.15,
+}) {
   return (
     <section className="w-full py-24 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden">
       
+      {/* Particle Background Animation */}
+      {particleType !== "none" && (
+        <>
+          {particleType === "stars" && <ParticleStars count={100} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "floating" && <ParticleFloating count={50} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "bubbles" && <ParticleBubbles count={30} speed={0.5} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "dots" && <ParticleDots count={200} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "waves" && <ParticleWaves count={80} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+        </>
+      )}
+
       {/* Decorative Background Elements */}
       <div className="absolute top-20 right-10 w-72 h-72 bg-gradient-to-br from-purple-200/40 to-pink-200/40 rounded-full blur-3xl" />
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-tr from-indigo-200/40 to-blue-200/40 rounded-full blur-3xl" />

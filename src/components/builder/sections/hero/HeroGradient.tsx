@@ -1,5 +1,6 @@
 "use client";
 import TextEditable from "../../TextEditable";
+import { ParticleStars, ParticleFloating, ParticleBubbles, ParticleDots, ParticleWaves } from "../../../ui/particles";
 
 export default function HeroGradient({ 
   title, 
@@ -11,7 +12,10 @@ export default function HeroGradient({
   block1Icon,
   block2Icon,
   block3Icon,
-  onEdit 
+  onEdit,
+  particleType = "bubbles",
+  particleColor = "255, 255, 255",
+  particleOpacity = 0.2,
 }) {
   return (
     <section className="relative w-full py-32 overflow-hidden">
@@ -30,6 +34,17 @@ export default function HeroGradient({
       
       {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 opacity-10 grid-pattern" />
+
+      {/* Particle Background Animation */}
+      {particleType !== "none" && (
+        <>
+          {particleType === "stars" && <ParticleStars count={100} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "floating" && <ParticleFloating count={50} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "bubbles" && <ParticleBubbles count={30} speed={0.5} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "dots" && <ParticleDots count={200} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "waves" && <ParticleWaves count={80} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+        </>
+      )}
 
       {/* Content */}
       <div className="max-w-6xl mx-auto text-center px-6 relative z-10">

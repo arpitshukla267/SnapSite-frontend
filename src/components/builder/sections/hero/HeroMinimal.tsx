@@ -9,6 +9,7 @@ import TextEditable from "../../TextEditable";
 import Heading from "../../../primitives/Heading";
 import SubHeading from "../../../primitives/SubHeading";
 import Button from "../../../primitives/Button";
+import { ParticleStars, ParticleFloating, ParticleBubbles, ParticleDots, ParticleWaves } from "../../../ui/particles";
 
 export default function HeroMinimal({ 
   title, 
@@ -21,6 +22,9 @@ export default function HeroMinimal({
   buttonBackground = "#1f2937",
   buttonTextColor = "#ffffff",
   accentColor = "#4f46e5",
+  particleType = "dots",
+  particleColor = "79, 70, 229",
+  particleOpacity = 0.1,
 }) {
   return (
     <section 
@@ -32,6 +36,17 @@ export default function HeroMinimal({
       
       {/* Subtle Gradient Accent - Layout only */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-br from-indigo-200/30 to-purple-200/30 blur-3xl rounded-full" />
+
+      {/* Particle Background Animation */}
+      {particleType !== "none" && (
+        <>
+          {particleType === "stars" && <ParticleStars count={100} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "floating" && <ParticleFloating count={50} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "bubbles" && <ParticleBubbles count={30} speed={0.5} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "dots" && <ParticleDots count={200} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "waves" && <ParticleWaves count={80} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+        </>
+      )}
 
       {/* Content */}
       <div className="relative z-10 max-w-3xl mx-auto">

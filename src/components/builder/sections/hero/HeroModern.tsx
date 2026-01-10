@@ -1,7 +1,10 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import TextEditable from "../../TextEditable";
 import { motion, useInView } from "framer-motion";
+import { resolveBackgroundAnimation } from "../../../../lib/animations/resolver";
+import { getDefaultAnimationConfig, mergeAnimationConfig, BackgroundAnimationConfig } from "../../../../lib/animations/config";
+import { ParticleStars, ParticleFloating, ParticleBubbles, ParticleDots, ParticleWaves } from "../../../ui/particles";
 
 export default function HeroModern({
   title = "Transform Your Ideas Into Reality",
@@ -17,6 +20,10 @@ export default function HeroModern({
   buttonTextColor = "#ffffff",
   button2Background = "#f1f5f9",
   button2TextColor = "#0f172a",
+  animationConfig,
+  particleType = "floating",
+  particleColor = "79, 70, 229",
+  particleOpacity = 0.2,
 }: {
   title?: string;
   subtitle?: string;
@@ -31,16 +38,50 @@ export default function HeroModern({
   buttonTextColor?: string;
   button2Background?: string;
   button2TextColor?: string;
+  animationConfig?: BackgroundAnimationConfig;
+  particleType?: "stars" | "floating" | "bubbles" | "dots" | "waves" | "none";
+  particleColor?: string;
+  particleOpacity?: number;
 }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const waveRef = useRef<SVGSVGElement>(null);
 
-  const backgroundStyle = gradientColors && gradientColors.length >= 2
-    ? {
-        background: `linear-gradient(135deg, ${gradientColors.join(', ')})`,
-      }
-    : { backgroundColor };
+  // Get animation config (merge user config with defaults)
+  const defaultConfig = getDefaultAnimationConfig("heroModern");
+  const userConfig = animationConfig || {};
+  const mergedConfig = mergeAnimationConfig(userConfig, defaultConfig);
+  
+  // Override gradient colors if provided
+  if (gradientColors && gradientColors.length >= 2) {
+    mergedConfig.gradient = {
+      ...mergedConfig.gradient,
+      colors: gradientColors,
+    };
+  }
+
+  // Resolve background styles
+  const [backgroundStyle, setBackgroundStyle] = useState<React.CSSProperties>(() => {
+    const resolved = resolveBackgroundAnimation(mergedConfig);
+    return resolved.style;
+  });
+
+  // Update background style on animation frame
+  useEffect(() => {
+    let animationFrameId: number;
+    
+    const updateStyle = () => {
+      const resolved = resolveBackgroundAnimation(mergedConfig);
+      setBackgroundStyle(resolved.style);
+      animationFrameId = requestAnimationFrame(updateStyle);
+    };
+
+    animationFrameId = requestAnimationFrame(updateStyle);
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [mergedConfig]);
 
   // Animated wave background
   useEffect(() => {
@@ -82,8 +123,19 @@ export default function HeroModern({
       <section
         ref={ref}
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
-        style={backgroundStyle}
+        style={{ ...backgroundStyle, backgroundColor: backgroundColor }}
       >
+        {/* Particle Background Animation */}
+        {particleType !== "none" && (
+          <>
+            {particleType === "stars" && <ParticleStars count={100} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+            {particleType === "floating" && <ParticleFloating count={50} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+            {particleType === "bubbles" && <ParticleBubbles count={30} speed={0.5} color={particleColor} opacity={particleOpacity} />}
+            {particleType === "dots" && <ParticleDots count={200} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+            {particleType === "waves" && <ParticleWaves count={80} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+          </>
+        )}
+
         {/* Animated Wave Background */}
         <div className="absolute inset-0 overflow-hidden opacity-20">
           <svg

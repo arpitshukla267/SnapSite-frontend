@@ -2,6 +2,7 @@
 import { useRef } from "react";
 import TextEditable from "../../TextEditable";
 import { motion, useInView } from "framer-motion";
+import { ParticleStars, ParticleFloating, ParticleBubbles, ParticleDots, ParticleWaves } from "../../../ui/particles";
 
 export default function CTAAnimated({
   title = "Ready to Get Started?",
@@ -14,6 +15,9 @@ export default function CTAAnimated({
   subtitleColor = "#e2e8f0",
   buttonBackground = "#ffffff",
   buttonTextColor = "#4f46e5",
+  particleType = "stars",
+  particleColor = "255, 255, 255",
+  particleOpacity = 0.2,
 }: {
   title?: string;
   subtitle?: string;
@@ -25,6 +29,9 @@ export default function CTAAnimated({
   subtitleColor?: string;
   buttonBackground?: string;
   buttonTextColor?: string;
+  particleType?: "stars" | "floating" | "bubbles" | "dots" | "waves" | "none";
+  particleColor?: string;
+  particleOpacity?: number;
 }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });

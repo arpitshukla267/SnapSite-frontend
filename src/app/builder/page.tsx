@@ -2383,6 +2383,7 @@ function SortableSection({
         key={block.id}
         {...block.props}
         {...themeToProps(block.theme || getDefaultGranularTheme(block.type, block.props))}
+        animationConfig={block.props?.animationConfig}
         onEdit={(field, cardIndex, cardType) => {
           setSelectedBlockIndex(blockIndex);
           onEdit(field, cardIndex, cardType);

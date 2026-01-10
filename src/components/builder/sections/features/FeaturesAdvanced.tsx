@@ -4,6 +4,7 @@ import TextEditable from "../../TextEditable";
 import { motion, useInView } from "framer-motion";
 import { Sparkles, Zap, Shield, Rocket } from "lucide-react";
 import React from "react";
+import { ParticleStars, ParticleFloating, ParticleBubbles, ParticleDots, ParticleWaves } from "../../../ui/particles";
 
 const defaultIcons = [Sparkles, Zap, Shield, Rocket];
 
@@ -19,6 +20,9 @@ export default function FeaturesAdvanced({
   subtitleColor = "#64748b",
   iconColor = "#4f46e5",
   cardColors = [],
+  particleType = "dots",
+  particleColor = "79, 70, 229",
+  particleOpacity = 0.1,
 }: {
   title?: string;
   subtitle?: string;
@@ -31,6 +35,9 @@ export default function FeaturesAdvanced({
   subtitleColor?: string;
   iconColor?: string;
   cardColors?: Array<{ backgroundColor?: string; headerColor?: string; paragraphColor?: string; iconColor?: string }>;
+  particleType?: "stars" | "floating" | "bubbles" | "dots" | "waves" | "none";
+  particleColor?: string;
+  particleOpacity?: number;
 }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -73,6 +80,17 @@ export default function FeaturesAdvanced({
       style={{ backgroundColor }}
       ref={ref}
     >
+      {/* Particle Background Animation */}
+      {particleType !== "none" && (
+        <div style={{ zIndex: 0, position: "absolute", inset: 0 }}>
+          {particleType === "stars" && <ParticleStars count={100} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "floating" && <ParticleFloating count={50} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "bubbles" && <ParticleBubbles count={30} speed={0.5} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "dots" && <ParticleDots count={200} speed={0.2} color={particleColor} opacity={particleOpacity} />}
+          {particleType === "waves" && <ParticleWaves count={80} speed={0.3} color={particleColor} opacity={particleOpacity} />}
+        </div>
+      )}
+
       <motion.div
         className="max-w-7xl mx-auto"
         initial="hidden"
