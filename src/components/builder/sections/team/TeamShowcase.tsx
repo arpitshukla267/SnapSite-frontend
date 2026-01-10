@@ -17,7 +17,7 @@ export default function TeamShowcase({
   title?: string;
   subtitle?: string;
   members?: Array<{ name: string; role: string; image: string; bio: string }>;
-  onEdit?: (field: string, cardIndex?: number) => void;
+  onEdit?: (field: string, cardIndex?: number, cardType?: string) => void;
   backgroundColor?: string;
   titleColor?: string;
   subtitleColor?: string;
