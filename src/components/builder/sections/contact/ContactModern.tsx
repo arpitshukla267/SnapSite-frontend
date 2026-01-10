@@ -170,25 +170,39 @@ export default function ContactModern({
                     <textarea
                       rows={5}
                       placeholder={field.placeholder}
-                      className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none transition-all"
+                      className="w-full px-4 py-3 rounded-xl border focus:outline-none transition-all"
                       style={{
                         borderColor: "rgba(0, 0, 0, 0.1)",
-                        focusRingColor: accentColor,
                       }}
                       value={formData[field.name as keyof typeof formData]}
                       onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                      onFocus={(e) => {
+                        e.currentTarget.style.boxShadow = `0 0 0 2px ${accentColor}`;
+                        e.currentTarget.style.borderColor = accentColor;
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.boxShadow = "";
+                        e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.1)";
+                      }}
                     />
                   ) : (
                     <input
                       type={field.type}
                       placeholder={field.placeholder}
-                      className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none transition-all"
+                      className="w-full px-4 py-3 rounded-xl border focus:outline-none transition-all"
                       style={{
                         borderColor: "rgba(0, 0, 0, 0.1)",
-                        focusRingColor: accentColor,
                       }}
                       value={formData[field.name as keyof typeof formData]}
                       onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                      onFocus={(e) => {
+                        e.currentTarget.style.boxShadow = `0 0 0 2px ${accentColor}`;
+                        e.currentTarget.style.borderColor = accentColor;
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.boxShadow = "";
+                        e.currentTarget.style.borderColor = "rgba(0, 0, 0, 0.1)";
+                      }}
                     />
                   )}
                 </motion.div>
