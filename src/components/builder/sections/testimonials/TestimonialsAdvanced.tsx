@@ -36,7 +36,7 @@ export default function TestimonialsAdvanced({
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
-  const defaultTestimonials = [
+  const defaultTestimonials: Array<{ name: string; role: string; content: string; image?: string; rating?: number }> = [
     {
       name: "Sarah Johnson",
       role: "CEO, TechStart",
