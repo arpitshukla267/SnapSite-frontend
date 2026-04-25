@@ -20,7 +20,7 @@ export default function Login() {
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout for health check
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout for health check (Render cold starts)
         
         // Try to fetch the root endpoint
         const res = await fetch(`${API_BASE_URL}/`, {
@@ -78,7 +78,7 @@ export default function Login() {
       
       // Add timeout and better error handling
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout (Render cold starts)
       
       const res = await fetch(loginUrl, {
         method: "POST",

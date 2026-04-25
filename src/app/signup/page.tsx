@@ -34,21 +34,34 @@ export default function Signup() {
 
     // Call backend API
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for cold starts
+
       const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ name, username, email, phone, password, confirmPassword })
+        body: JSON.stringify({ name, username, email, phone, password, confirmPassword }),
+        signal: controller.signal
       });
 
-      const data = await res.json();
+      clearTimeout(timeoutId);
 
       if (!res.ok) {
-        setError(data.message || "Signup failed");
+        let errorMessage = "Signup failed";
+        try {
+          const data = await res.json();
+          errorMessage = data.message || errorMessage;
+        } catch (e) {
+          errorMessage = res.statusText || `Server returned ${res.status}`;
+        }
+        setError(errorMessage);
         setIsLoading(false);
         return;
       }
+
+      const data = await res.json();
 
       // SUCCESS
       setSuccess("Signup successful! Redirecting to login...");
@@ -62,9 +75,15 @@ export default function Signup() {
         window.location.href = "/";
       }, 1000);
 
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Something went wrong. Please try again.");
+      let errorMessage = "Something went wrong. Please try again.";
+      if (err.name === "AbortError") {
+        errorMessage = "Request timed out. The server may be slow or unreachable. Please try again.";
+      } else if (err instanceof TypeError && err.message === "Failed to fetch") {
+        errorMessage = "Cannot connect to server. Please check your internet connection and ensure the backend is running.";
+      }
+      setError(errorMessage);
       setIsLoading(false);
     }
   }
