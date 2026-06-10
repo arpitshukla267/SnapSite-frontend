@@ -447,10 +447,10 @@ export default function TemplatesPage() {
   const handleUseTemplate = () => {
     const token = localStorage.getItem("token");
     
-    if (!token) {
-      setShowLoginModal(true);
-      return;
-    }
+    // if (!token) {
+    //   setShowLoginModal(true);
+    //   return;
+    // }
 
     if (selectedTemplate) {
       if (selectedTemplate.isSavedTemplate) {
